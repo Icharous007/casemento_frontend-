@@ -8,12 +8,17 @@ import AdminLayout from './pages/admin/AdminLayout';
 import DashboardPage from './pages/admin/DashboardPage';
 import GuestsPage from './pages/admin/GuestsPage';
 import AdminRsvpPage from './pages/admin/RsvpPage';
+import AdminGiftsPage from './pages/admin/GiftsPage';
+import AdminMediaPage from './pages/admin/MediaPage';
+import AdminWallPage from './pages/admin/WallPage';
 
 // Guest pages
-import AccessPage from './pages/guest/AccessPage';
-import FirstAccessPage from './pages/guest/FirstAccessPage';
+import SaveTheDatePage from './pages/guest/SaveTheDatePage';
 import GuestHomePage from './pages/guest/HomePage';
 import GuestRsvpPage from './pages/guest/RsvpPage';
+import GiftsPage from './pages/guest/GiftsPage';
+import GalleryPage from './pages/guest/GalleryPage';
+import WallPage from './pages/guest/WallPage';
 
 function RequireAdminAuth() {
   const { isAuthenticated } = useAdminAuth();
@@ -28,10 +33,12 @@ export default function App() {
       <GuestAuthProvider>
         <Routes>
           {/* Guest routes */}
-          <Route path="/acesso" element={<AccessPage />} />
-          <Route path="/primeiro-acesso" element={<FirstAccessPage />} />
+          <Route path="/save-the-date" element={<SaveTheDatePage />} />
           <Route path="/home" element={<GuestHomePage />} />
           <Route path="/rsvp" element={<GuestRsvpPage />} />
+          <Route path="/presentes" element={<GiftsPage />} />
+          <Route path="/galeria" element={<GalleryPage />} />
+          <Route path="/mural" element={<WallPage />} />
 
           {/* Admin routes */}
           <Route path="/admin/login" element={<LoginPage />} />
@@ -39,10 +46,13 @@ export default function App() {
             <Route path="/admin" element={<DashboardPage />} />
             <Route path="/admin/convidados" element={<GuestsPage />} />
             <Route path="/admin/rsvp" element={<AdminRsvpPage />} />
+            <Route path="/admin/presentes" element={<AdminGiftsPage />} />
+            <Route path="/admin/galeria" element={<AdminMediaPage />} />
+            <Route path="/admin/mural" element={<AdminWallPage />} />
           </Route>
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/acesso" replace />} />
+          <Route path="*" element={<Navigate to="/save-the-date" replace />} />
         </Routes>
       </GuestAuthProvider>
     </AdminAuthProvider>

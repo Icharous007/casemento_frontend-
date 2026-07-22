@@ -9,6 +9,9 @@ import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
+import ForumIcon from '@mui/icons-material/Forum';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
@@ -18,9 +21,12 @@ const navItems = [
   { label: 'Dashboard', icon: <DashboardIcon />, to: '/admin' },
   { label: 'Convidados', icon: <PeopleIcon />, to: '/admin/convidados' },
   { label: 'RSVP', icon: <HowToRegIcon />, to: '/admin/rsvp' },
+  { label: 'Presentes', icon: <CardGiftcardIcon />, to: '/admin/presentes' },
+  { label: 'Galeria', icon: <PhotoLibraryIcon />, to: '/admin/galeria' },
+  { label: 'Mural', icon: <ForumIcon />, to: '/admin/mural' },
 ];
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default function AdminLayout({ children }: Readonly<{ children: ReactNode }>) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);

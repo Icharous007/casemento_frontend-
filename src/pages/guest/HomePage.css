@@ -1,0 +1,168 @@
+.save-date-page {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #120c09;
+  color: #f8f2ea;
+}
+
+.save-date-backdrop {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: blur(20px);
+  transform: scale(1.08);
+  opacity: 0.88;
+}
+
+.save-date-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: minmax(280px, 760px) minmax(320px, 460px);
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.save-date-posterFrame {
+  position: relative;
+  width: min(100%, 760px);
+  justify-self: end;
+}
+
+.save-date-posterFrame::after {
+  content: '';
+  position: absolute;
+  inset: auto 6% -24px;
+  height: 56px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.34);
+  filter: blur(24px);
+}
+
+.save-date-poster {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 32px;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.38);
+}
+
+.save-date-panel {
+  width: min(100%, 460px);
+  padding: 32px;
+  border: 1px solid rgba(255, 244, 232, 0.18);
+  border-radius: 32px;
+  background: linear-gradient(180deg, rgba(56, 34, 25, 0.8), rgba(22, 15, 12, 0.92));
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.22);
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.save-date-badges {
+  margin-bottom: 18px;
+}
+
+.save-date-chip {
+  border-radius: 999px;
+}
+
+.save-date-chip.save-date-chip--soft {
+  background: rgba(74, 46, 35, 0.92);
+  color: #fffdf9;
+}
+
+.save-date-eyebrow {
+  margin: 0 0 10px;
+  font-family: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255, 239, 223, 0.78);
+}
+
+.save-date-title {
+  margin: 0;
+  font-family: 'Cormorant Garamond', 'Iowan Old Style', 'Palatino Linotype', serif;
+  font-size: clamp(2.8rem, 5vw, 4.5rem);
+  line-height: 0.95;
+  color: #fff8f2;
+}
+
+.save-date-description {
+  margin: 18px 0 0;
+  font-family: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(255, 239, 223, 0.82);
+}
+
+.save-date-inlineStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  color: #fff6ef;
+}
+
+.save-date-meta {
+  margin: 20px 0 0;
+  font-family: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 239, 223, 0.72);
+}
+
+.save-date-actions {
+  margin-top: 28px;
+}
+
+@media (max-width: 1100px) {
+  .save-date-shell {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 24px;
+    padding: 24px 16px 32px;
+  }
+
+  .save-date-posterFrame {
+    justify-self: center;
+  }
+
+  .save-date-panel {
+    width: min(100%, 760px);
+    text-align: center;
+  }
+
+  .save-date-badges {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .save-date-shell {
+    padding-top: 16px;
+  }
+
+  .save-date-poster {
+    border-radius: 24px;
+  }
+
+  .save-date-panel {
+    padding: 24px 18px;
+    border-radius: 24px;
+  }
+
+  .save-date-description {
+    font-size: 0.95rem;
+  }
+}

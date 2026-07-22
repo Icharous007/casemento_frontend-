@@ -10,10 +10,12 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import BlockIcon from '@mui/icons-material/Block';
 import QrCodeIcon from '@mui/icons-material/QrCode';
+import DownloadIcon from '@mui/icons-material/Download';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import SearchIcon from '@mui/icons-material/Search';
 import {
   listGuests, createGuest, deleteGuest, blockGuest, importGuestsFile,
+  getQrCodesExportUrl, getEventQrCodeUrl,
 } from '../../api/adminGuestsApi';
 
 const PAGE_SIZE = 20;
@@ -37,7 +39,7 @@ export default function GuestsPage() {
   const [searchInput, setSearchInput] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState('');
-  const [newEmail, setNewEmail] = useState('');
+  const [newPhone, setNewPhone] = useState('');
   const [createError, setCreateError] = useState('');
   const [importResult, setImportResult] = useState<{ imported: number; errors: any[] } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -48,12 +50,12 @@ export default function GuestsPage() {
   });
 
   const createMut = useMutation({
-    mutationFn: () => createGuest({ displayName: newName, email: newEmail || undefined }),
+    mutationFn: () => createGuest({ displayName: newName, phone: newPhone || undefined }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'guests'] });
       setCreateOpen(false);
       setNewName('');
-      setNewEmail('');
+      setNewPhone('');
       setCreateError('');
     },
     onError: (err: any) => setCreateError(err?.response?.data?.message ?? 'Erro ao criar convidado.'),
@@ -83,8 +85,7 @@ export default function GuestsPage() {
     }
   }
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
+  function handleSearch() {
     setSearch(searchInput);
     setPage(1);
   }
@@ -95,11 +96,29 @@ export default function GuestsPage() {
     <Box>
       <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h5" sx={{ fontWeight: 500 }}>Convidados</Typography>
-        <Stack direction="row" sx={{ gap: 1 }}>
+        <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
           <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => fileRef.current?.click()}>
             Importar CSV/Excel
           </Button>
           <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" hidden onChange={handleImport} />
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            href={getQrCodesExportUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Exportar QR
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<QrCodeIcon />}
+            href={getEventQrCodeUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            QR do evento
+          </Button>
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreateOpen(true)}>
             Novo convidado
           </Button>
@@ -114,10 +133,11 @@ export default function GuestsPage() {
         >
           {importResult.imported} importados.
           {importResult.errors.length > 0 && ` ${importResult.errors.length} erros.`}
+          {' '}Formato esperado: nome, telefone.
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSearch} sx={{ mb: 2 }}>
+      <Box component="form" onSubmit={(e) => { e.preventDefault(); handleSearch(); }} sx={{ mb: 2 }}>
         <TextField
           size="small"
           placeholder="Buscar por nome..."
@@ -140,7 +160,7 @@ export default function GuestsPage() {
           <TableHead>
             <TableRow>
               <TableCell>Nome</TableCell>
-              <TableCell>E-mail</TableCell>
+              <TableCell>Telefone</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>RSVP</TableCell>
               <TableCell align="right">Ações</TableCell>
@@ -155,7 +175,7 @@ export default function GuestsPage() {
             {data?.items.map((g) => (
               <TableRow key={g.id} hover>
                 <TableCell>{g.name}</TableCell>
-                <TableCell>{g.email ?? '—'}</TableCell>
+                <TableCell>{g.phone ?? '—'}</TableCell>
                 <TableCell>
                   <Chip label={g.status} color={statusColor[g.status] ?? 'default'} size="small" />
                 </TableCell>
@@ -163,11 +183,11 @@ export default function GuestsPage() {
                   <Chip label={g.rsvpStatus} color={rsvpColor[g.rsvpStatus] ?? 'default'} size="small" />
                 </TableCell>
                 <TableCell align="right">
-                  <Tooltip title="Ver QR code">
+                  <Tooltip title="Ver QR code do evento">
                     <IconButton
                       size="small"
                       onClick={() => {
-                        window.open(`/api/v1/admin/guests/${g.id}/qr-code`, '_blank');
+                        window.open(getEventQrCodeUrl(), '_blank');
                       }}
                     >
                       <QrCodeIcon fontSize="small" />
@@ -217,11 +237,12 @@ export default function GuestsPage() {
             autoFocus
           />
           <TextField
-            label="E-mail (opcional)"
-            type="email"
+            label="Telefone (opcional)"
+            type="tel"
             fullWidth
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
+            value={newPhone}
+            onChange={(e) => setNewPhone(e.target.value)}
+            placeholder="(11) 99999-9999"
           />
         </DialogContent>
         <DialogActions>

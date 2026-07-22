@@ -1,14 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Box, Typography, Card, CardContent, Button, Chip,
-  CircularProgress, Alert, Divider, Stack,
+  Alert, Box, Button, Chip, CircularProgress, GlobalStyles, Stack, Typography,
 } from '@mui/material';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import HowToRegIcon from '@mui/icons-material/HowToReg';
 import { getMe } from '../../api/guestApi';
-import GuestLayout from './GuestLayout';
+import saveTheDateImage from '../../assets/save_the_date.png';
+import './HomePage.css';
 
 const rsvpLabel: Record<string, string> = {
   ATTENDING: '✓ Presença confirmada',
@@ -29,101 +26,132 @@ export default function GuestHomePage() {
     queryFn: getMe,
   });
 
-  if (isLoading) {
-    return (
-      <GuestLayout>
-        <Box sx={{ textAlign: "center", py: 6 }}><CircularProgress /></Box>
-      </GuestLayout>
-    );
-  }
-
-  if (isError || !data) {
-    return (
-      <GuestLayout>
-        <Alert severity="error">
-          Não foi possível carregar as informações. Tente novamente.
-        </Alert>
-      </GuestLayout>
-    );
-  }
-
-  const { event, displayName, rsvpStatus } = data;
-  const eventDate = event.eventStartAt ? new Date(event.eventStartAt) : null;
+  const guestName = data?.displayName;
+  const eventTitle = data?.event.title ?? 'Nosso Casamento';
+  const coupleNames = data?.event.coupleNames;
+  const rsvpStatus = data?.rsvpStatus;
+  const rsvpDeadline = data?.event.rsvpDeadlineAt
+    ? new Date(data.event.rsvpDeadlineAt).toLocaleDateString('pt-BR')
+    : null;
 
   return (
-    <GuestLayout title={event.title}>
-      <Typography variant="h5" color="primary" sx={{ fontWeight: 400, textAlign: "center", mb: 0.5 }}>
-        Olá, {displayName}! 💕
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mb: 3 }}>
-        Você está convidado(a) para celebrar conosco.
-      </Typography>
+    <>
+      <GlobalStyles
+        styles={{
+          body: { backgroundColor: '#120c09' },
+          '#root': {
+            width: '100%',
+            maxWidth: '100%',
+            margin: 0,
+            borderInline: 'none',
+            minHeight: '100svh',
+            display: 'block',
+          },
+        }}
+      />
 
-      <Card elevation={2} sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" color="primary" sx={{ fontWeight: 500, mb: 2, textAlign: "center" }}>
-            {event.coupleNames}
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
+      <Box className="save-date-page">
+        <Box
+          className="save-date-backdrop"
+          sx={{ backgroundImage: `linear-gradient(180deg, rgba(18, 12, 9, 0.24), rgba(18, 12, 9, 0.9)), url(${saveTheDateImage})` }}
+        />
 
-          <Stack spacing={1.5}>
-            {eventDate && (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <CalendarMonthIcon color="action" fontSize="small" />
-                <Typography variant="body2">
-                  {eventDate.toLocaleDateString('pt-BR', {
-                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-                  })}
-                  {' — '}
-                  {eventDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                </Typography>
-              </Box>
-            )}
-            {event.venueName && (
-              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
-                <LocationOnIcon color="action" fontSize="small" sx={{ mt: 0.2 }} />
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>{event.venueName}</Typography>
-                  {event.venueAddress && (
-                    <Typography variant="body2" color="text.secondary">{event.venueAddress}</Typography>
-                  )}
-                </Box>
-              </Box>
-            )}
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card elevation={1} sx={{ mb: 3 }}>
-        <CardContent>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <HowToRegIcon color="action" />
-              <Typography variant="body1" sx={{ fontWeight: 500 }}>Sua confirmação</Typography>
-            </Box>
-            <Chip
-              label={rsvpLabel[rsvpStatus] ?? rsvpStatus}
-              color={rsvpColor[rsvpStatus] ?? 'default'}
+        <Box className="save-date-shell">
+          <Box className="save-date-posterFrame">
+            <Box
+              component="img"
+              src={saveTheDateImage}
+              alt="Save the date do casamento"
+              className="save-date-poster"
             />
           </Box>
 
-          {event.rsvpDeadlineAt && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Prazo: {new Date(event.rsvpDeadlineAt).toLocaleDateString('pt-BR')}
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
+          <Box className="save-date-panel">
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }} className="save-date-badges">
+              <Chip label={eventTitle} className="save-date-chip save-date-chip--soft" />
+              {rsvpStatus && (
+                <Chip
+                  label={rsvpLabel[rsvpStatus] ?? rsvpStatus}
+                  color={rsvpColor[rsvpStatus] ?? 'default'}
+                  className="save-date-chip"
+                />
+              )}
+            </Stack>
 
-      <Button
-        variant="contained"
-        fullWidth
-        size="large"
-        onClick={() => navigate('/rsvp')}
-        sx={{ mb: 2 }}
-      >
-        {rsvpStatus === 'PENDING' ? 'Confirmar presença' : 'Alterar confirmação'}
-      </Button>
-    </GuestLayout>
+            <Typography className="save-date-eyebrow">
+              {guestName ? `Olá, ${guestName}` : 'Você está convidado(a)'}
+            </Typography>
+
+            <Typography className="save-date-title">
+              {coupleNames ?? 'Reserve esta data para celebrar conosco'}
+            </Typography>
+
+            <Typography className="save-date-description">
+              Uma prévia do nosso grande dia. Explore sua confirmação, lista de presentes, galeria e mural a partir desta página.
+            </Typography>
+
+            {isLoading && (
+              <Box className="save-date-inlineStatus">
+                <CircularProgress size={20} color="inherit" />
+                <Typography variant="body2">Carregando seus detalhes do convite...</Typography>
+              </Box>
+            )}
+
+            {isError && (
+              <Alert severity="warning" sx={{ borderRadius: 3 }}>
+                Não foi possível carregar seus dados agora. Você ainda pode navegar pelas demais áreas.
+              </Alert>
+            )}
+
+            {rsvpDeadline && !isError && (
+              <Typography className="save-date-meta">
+                RSVP até {rsvpDeadline}
+              </Typography>
+            )}
+
+            <Stack spacing={1.5} className="save-date-actions">
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => navigate('/rsvp')}
+                sx={{ borderRadius: 999, py: 1.5 }}
+              >
+                {rsvpStatus === 'PENDING' ? 'Confirmar presença' : 'Ver confirmação'}
+              </Button>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  fullWidth
+                  onClick={() => navigate('/presentes')}
+                  sx={{ borderRadius: 999, py: 1.5 }}
+                >
+                  Presentes
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  fullWidth
+                  onClick={() => navigate('/galeria')}
+                  sx={{ borderRadius: 999, py: 1.5 }}
+                >
+                  Galeria
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  fullWidth
+                  onClick={() => navigate('/mural')}
+                  sx={{ borderRadius: 999, py: 1.5 }}
+                >
+                  Mural
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
+        </Box>
+      </Box>
+    </>
   );
 }

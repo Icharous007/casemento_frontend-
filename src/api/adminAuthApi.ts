@@ -16,11 +16,3 @@ export async function adminLogin(email: string, password: string): Promise<Login
 export async function adminLogout(refreshToken: string): Promise<void> {
   await adminClient.post('/admin/auth/logout', { refreshToken });
 }
-
-export async function adminForgotPassword(email: string): Promise<void> {
-  await adminClient.post('/admin/auth/forgot-password', { email });
-}
-
-export async function adminResetPassword(token: string, newPassword: string): Promise<void> {
-  await adminClient.post('/admin/auth/reset-password', { token, newPassword });
-}

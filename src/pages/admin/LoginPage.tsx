@@ -17,8 +17,7 @@ export default function LoginPage() {
   const { login } = useAdminAuth();
   const navigate = useNavigate();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit() {
     setError('');
     setLoading(true);
     try {
@@ -54,7 +53,7 @@ export default function LoginPage() {
 
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-          <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Box component="form" onSubmit={(e) => { e.preventDefault(); void handleSubmit(); }} noValidate>
             <TextField
               label="E-mail"
               type="email"

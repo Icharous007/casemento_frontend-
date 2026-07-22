@@ -4,7 +4,9 @@ export interface GuestItem {
   id: string;
   name: string;
   status: string;
-  email: string | null;
+  phone: string | null;
+  source: string | null;
+  inviteStatus: string | null;
   accessToken: string | null;
   qrCodeUrl: string;
   rsvpStatus: string;
@@ -30,7 +32,7 @@ export async function listGuests(params?: {
 
 export async function createGuest(body: {
   displayName: string;
-  email?: string;
+  phone?: string;
   notes?: string;
 }): Promise<GuestItem> {
   const { data } = await adminClient.post<GuestItem>('/admin/guests', body);
@@ -64,6 +66,16 @@ export async function importGuestsFile(file: File): Promise<{
   return data;
 }
 
-export function getQrCodeUrl(guestId: string): string {
-  return `/api/v1/admin/guests/${guestId}/qr-code`;
+// ─── QR codes ─────────────────────────────────────────────────────────────────
+
+export function getEventQrCodeUrl(eventId?: string): string {
+  const base = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
+  const qs = eventId ? `?eventId=${eventId}` : '';
+  return `${base}/admin/guests/qr-code${qs}`;
+}
+
+export function getQrCodesExportUrl(eventId?: string): string {
+  const base = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
+  const qs = eventId ? `?eventId=${eventId}` : '';
+  return `${base}/admin/guests/qr-codes/export${qs}`;
 }
