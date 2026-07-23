@@ -118,7 +118,7 @@ export default function AdminLayout({ children }: Readonly<{ children: ReactNode
             duration: theme.transitions.duration.enteringScreen,
           }),
           minHeight: 'calc(100vh - 64px)',
-          bgcolor: 'background.default',
+          bgcolor: 'transparent',
         }}
       >
         {children}

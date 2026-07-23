@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Card, CardContent, CardMedia, CardActions,
@@ -11,7 +12,19 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import GuestLayout from './GuestLayout';
 import { listGifts, markGiftPurchased, type GiftItem } from '../../api/giftsApi';
 
+const giftCardSx = {
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  border: '1px solid rgba(181, 154, 199, 0.20)',
+  borderRadius: 4,
+  background: 'linear-gradient(180deg, rgba(255, 253, 251, 0.96), rgba(215, 198, 234, 0.88))',
+  boxShadow: '0 18px 46px rgba(128, 102, 167, 0.14)',
+  overflow: 'hidden',
+};
+
 export default function GiftsPage() {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [confirmItem, setConfirmItem] = useState<GiftItem | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -65,6 +78,14 @@ export default function GiftsPage() {
         Escolha um presente e marque como comprado para reservar.
       </Typography>
 
+      <Button
+        variant="text"
+        onClick={() => navigate('/home')}
+        sx={{ mb: 2 }}
+      >
+        Voltar para Home
+      </Button>
+
       {items.length === 0 && (
         <Alert severity="info">Nenhum presente cadastrado ainda.</Alert>
       )}
@@ -72,7 +93,7 @@ export default function GiftsPage() {
       <Grid container spacing={2}>
         {items.map((item) => (
           <Grid size={{ xs: 12, sm: 6 }} key={item.id}>
-            <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card elevation={0} sx={giftCardSx}>
               {item.imageUrl && (
                 <CardMedia
                   component="img"
@@ -82,8 +103,9 @@ export default function GiftsPage() {
                   sx={{
                     objectFit: 'contain',
                     objectPosition: 'center',
-                    bgcolor: 'grey.100',
+                    bgcolor: 'rgba(255, 248, 245, 0.65)',
                     p: 1.5,
+                    borderBottom: '1px solid rgba(181, 154, 199, 0.16)',
                   }}
                 />
               )}
@@ -95,7 +117,7 @@ export default function GiftsPage() {
                   <Chip
                     size="small"
                     label={item.status === 'AVAILABLE' ? 'Disponível' : 'Comprado'}
-                    color={item.status === 'AVAILABLE' ? 'success' : 'default'}
+                    color={item.status === 'AVAILABLE' ? 'primary' : 'secondary'}
                     icon={item.status === 'PURCHASED' ? <CheckCircleIcon /> : undefined}
                   />
                 </Box>
@@ -110,7 +132,7 @@ export default function GiftsPage() {
                   </Typography>
                 )}
               </CardContent>
-              <CardActions sx={{ px: 2, pb: 2, gap: 1 }}>
+              <CardActions sx={{ px: 2, pb: 2, pt: 0, gap: 1, borderTop: '1px solid rgba(181, 154, 199, 0.16)' }}>
                 {item.externalUrl && (
                   <Button
                     size="small"

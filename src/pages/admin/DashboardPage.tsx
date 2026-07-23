@@ -9,15 +9,15 @@ import { listRsvps } from '../../api/adminRsvpApi';
 
 function StatCard({
   label, value, icon, color,
-}: { label: string; value: number | string; icon: React.ReactNode; color: string }) {
+}: Readonly<{ label: string; value: number | string; icon: React.ReactNode; color: 'primary' | 'secondary' | 'info' | 'warning' | 'error' }>) {
   return (
     <Card elevation={2}>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box
             sx={{
-              bgcolor: `${color}20`,
-              color,
+              bgcolor: `${color}.light`,
+              color: `${color}.dark`,
               borderRadius: 2,
               p: 1.5,
               display: 'flex',
@@ -65,16 +65,16 @@ export default function DashboardPage() {
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard label="Total de convidados" value={totalGuests} icon={<PeopleIcon />} color="#c8a2c8" />
+          <StatCard label="Total de convidados" value={totalGuests} icon={<PeopleIcon />} color="primary" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard label="Confirmados" value={attending} icon={<HowToRegIcon />} color="#4caf50" />
+          <StatCard label="Confirmados" value={attending} icon={<HowToRegIcon />} color="secondary" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard label="Recusados" value={declined} icon={<DoNotDisturbIcon />} color="#f44336" />
+          <StatCard label="Recusados" value={declined} icon={<DoNotDisturbIcon />} color="warning" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard label="Pendentes" value={pending} icon={<HourglassEmptyIcon />} color="#ff9800" />
+          <StatCard label="Pendentes" value={pending} icon={<HourglassEmptyIcon />} color="info" />
         </Grid>
       </Grid>
 
@@ -86,7 +86,7 @@ export default function DashboardPage() {
               <Chip
                 key={r.guestId}
                 label={r.attendanceStatus === 'ATTENDING' ? '✓ Confirmado' : '✗ Recusado'}
-                color={r.attendanceStatus === 'ATTENDING' ? 'success' : 'error'}
+                color={r.attendanceStatus === 'ATTENDING' ? 'primary' : 'secondary'}
                 size="small"
                 variant="outlined"
               />

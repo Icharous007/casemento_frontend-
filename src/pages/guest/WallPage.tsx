@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Button, TextField, Card, CardContent,
@@ -19,7 +20,21 @@ import {
 
 const PAGE_SIZE = 20;
 
+const wallCardSx = {
+  border: '1px solid rgba(181, 154, 199, 0.20)',
+  borderRadius: 4,
+  background: 'linear-gradient(180deg, rgba(255, 253, 251, 0.96), rgba(215, 198, 234, 0.88))',
+  boxShadow: '0 18px 46px rgba(128, 102, 167, 0.14)',
+};
+
+function formatDuration(sec: number) {
+  const m = Math.floor(sec / 60).toString().padStart(2, '0');
+  const s = (sec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
 export default function WallPage() {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [page] = useState(1);
   const [textContent, setTextContent] = useState('');
@@ -98,10 +113,47 @@ export default function WallPage() {
     setAudioDialogOpen(false);
   }
 
-  function formatDuration(sec: number) {
-    const m = Math.floor(sec / 60).toString().padStart(2, '0');
-    const s = (sec % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
+  let audioDialogBody;
+  if (recording) {
+    audioDialogBody = (
+      <>
+        <Typography variant="h4" color="error">{formatDuration(audioDuration)}</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Gravando...</Typography>
+        <Fab color="error" onClick={stopRecording}>
+          <StopIcon />
+        </Fab>
+      </>
+    );
+  } else if (audioBlob) {
+    audioDialogBody = (
+      <>
+        <GraphicEqIcon sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Gravação: {formatDuration(audioDuration)}
+        </Typography>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'center' }}>
+          <Button variant="outlined" onClick={discardAudio}>Descartar</Button>
+          <Button
+            variant="contained"
+            disabled={audioMut.isPending}
+            onClick={() => audioMut.mutate({ blob: audioBlob, duration: audioDuration })}
+          >
+            {audioMut.isPending ? <CircularProgress size={18} color="inherit" /> : 'Enviar'}
+          </Button>
+        </Stack>
+      </>
+    );
+  } else {
+    audioDialogBody = (
+      <>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Clique para iniciar a gravação
+        </Typography>
+        <Fab color="primary" onClick={startRecording}>
+          <MicIcon />
+        </Fab>
+      </>
+    );
   }
 
   return (
@@ -113,11 +165,19 @@ export default function WallPage() {
         Deixe uma mensagem especial para os noivos!
       </Typography>
 
+      <Button
+        variant="text"
+        onClick={() => navigate('/home')}
+        sx={{ mb: 2 }}
+      >
+        Voltar para Home
+      </Button>
+
       {postError && <Alert severity="error" sx={{ mb: 2 }}>{postError}</Alert>}
 
       {/* Text post */}
-      <Card elevation={2} sx={{ mb: 3 }}>
-        <CardContent>
+      <Card elevation={0} sx={{ ...wallCardSx, mb: 3 }}>
+        <CardContent sx={{ p: { xs: 2.5, sm: 3 }, '&:last-child': { pb: { xs: 2.5, sm: 3 } } }}>
           <TextField
             multiline
             rows={3}
@@ -174,41 +234,7 @@ export default function WallPage() {
         <DialogTitle>Gravar mensagem de voz</DialogTitle>
         <DialogContent>
           <Box sx={{ textAlign: 'center', py: 2 }}>
-            {recording ? (
-              <>
-                <Typography variant="h4" color="error">{formatDuration(audioDuration)}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Gravando...</Typography>
-                <Fab color="error" onClick={stopRecording}>
-                  <StopIcon />
-                </Fab>
-              </>
-            ) : audioBlob ? (
-              <>
-                <GraphicEqIcon sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Gravação: {formatDuration(audioDuration)}
-                </Typography>
-                <Stack direction="row" spacing={1} sx={{ justifyContent: 'center' }}>
-                  <Button variant="outlined" onClick={discardAudio}>Descartar</Button>
-                  <Button
-                    variant="contained"
-                    disabled={audioMut.isPending}
-                    onClick={() => audioMut.mutate({ blob: audioBlob, duration: audioDuration })}
-                  >
-                    {audioMut.isPending ? <CircularProgress size={18} color="inherit" /> : 'Enviar'}
-                  </Button>
-                </Stack>
-              </>
-            ) : (
-              <>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Clique para iniciar a gravação
-                </Typography>
-                <Fab color="primary" onClick={startRecording}>
-                  <MicIcon />
-                </Fab>
-              </>
-            )}
+            {audioDialogBody}
           </Box>
         </DialogContent>
         <DialogActions>
@@ -219,13 +245,13 @@ export default function WallPage() {
   );
 }
 
-function WallPostCard({ post }: { post: WallPost }) {
+function WallPostCard({ post }: Readonly<{ post: WallPost }>) {
   const date = new Date(post.createdAt).toLocaleString('pt-BR', {
     day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
   });
 
   return (
-    <Card elevation={1}>
+    <Card elevation={0} sx={wallCardSx}>
       <CardContent sx={{ pb: '12px !important' }}>
         <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
           <Typography variant="body2" sx={{ fontWeight: 600 }}>{post.guestName}</Typography>

@@ -11,6 +11,14 @@ import { getMe } from '../../api/guestApi';
 import { submitRsvp } from '../../api/rsvpApi';
 import GuestLayout from './GuestLayout';
 
+const rsvpPanelSx = {
+  border: '1px solid rgba(181, 154, 199, 0.20)',
+  borderRadius: 4,
+  background: 'linear-gradient(180deg, rgba(255, 253, 251, 0.96), rgba(215, 198, 234, 0.88))',
+  backdropFilter: 'blur(18px)',
+  boxShadow: '0 18px 46px rgba(128, 102, 167, 0.14)',
+};
+
 export default function GuestRsvpPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -77,8 +85,8 @@ export default function GuestRsvpPage() {
         </Alert>
       )}
 
-      <Card elevation={2}>
-        <CardContent>
+      <Card elevation={0} sx={rsvpPanelSx}>
+        <CardContent sx={{ p: { xs: 3, sm: 4 }, '&:last-child': { pb: { xs: 3, sm: 4 } } }}>
           <Typography variant="body1" sx={{ fontWeight: 500, mb: 2, textAlign: "center" }}>
             Você vai comparecer?
           </Typography>
@@ -90,11 +98,43 @@ export default function GuestRsvpPage() {
               onChange={(_, v) => v && setAttendance(v)}
               size="large"
             >
-              <ToggleButton value="ATTENDING" color="success" sx={{ px: 3 }}>
+              <ToggleButton
+                value="ATTENDING"
+                color="primary"
+                sx={{
+                  px: 3,
+                  fontWeight: 500,
+                  '&.Mui-selected': {
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    borderColor: 'primary.dark',
+                    boxShadow: '0 10px 22px rgba(100, 131, 203, 0.28)',
+                  },
+                  '&.Mui-selected:hover': {
+                    bgcolor: 'primary.dark',
+                  },
+                }}
+              >
                 <CheckCircleOutlinedIcon sx={{ mr: 1 }} />
                 Sim, vou!
               </ToggleButton>
-              <ToggleButton value="DECLINED" color="error" sx={{ px: 3 }}>
+              <ToggleButton
+                value="DECLINED"
+                color="secondary"
+                sx={{
+                  px: 3,
+                  fontWeight: 500,
+                  '&.Mui-selected': {
+                    bgcolor: 'secondary.main',
+                    color: 'secondary.contrastText',
+                    borderColor: 'secondary.dark',
+                    boxShadow: '0 10px 22px rgba(150, 119, 170, 0.28)',
+                  },
+                  '&.Mui-selected:hover': {
+                    bgcolor: 'secondary.dark',
+                  },
+                }}
+              >
                 <CancelOutlinedIcon sx={{ mr: 1 }} />
                 Não poderei ir
               </ToggleButton>

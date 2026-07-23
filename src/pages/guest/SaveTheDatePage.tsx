@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box, Typography, Alert, Button, TextField, CircularProgress,
-  Checkbox, FormControlLabel, Divider,
+  Checkbox, FormControlLabel, Divider, Card, CardContent,
 } from '@mui/material';
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import { registerGuestAccess } from '../../api/guestApi';
@@ -13,6 +13,13 @@ const ERROR_MESSAGES: Record<string, string> = {
   PHONE_INVALID: 'Número de telefone inválido. Verifique e tente novamente.',
   GUEST_BLOCKED: 'Acesso indisponível. Fale com os noivos.',
   NOT_FOUND: 'Evento não encontrado. Verifique o link ou QR code.',
+};
+
+const saveDateCardSx = {
+  border: '1px solid rgba(181, 154, 199, 0.20)',
+  borderRadius: 4,
+  background: 'linear-gradient(180deg, rgba(255, 253, 251, 0.96), rgba(215, 198, 234, 0.88))',
+  boxShadow: '0 18px 46px rgba(128, 102, 167, 0.14)',
 };
 
 function resolveError(err: unknown): string {
@@ -72,8 +79,9 @@ export default function SaveTheDatePage() {
 
   return (
     <GuestLayout>
-      <Box sx={{ textAlign: 'center' }}>
-        <Box sx={{ py: 4 }}>
+      <Box sx={{ textAlign: 'center', py: 2 }}>
+        <Card elevation={0} sx={saveDateCardSx}>
+          <CardContent sx={{ p: { xs: 3, sm: 4 }, '&:last-child': { pb: { xs: 3, sm: 4 } } }}>
           <Typography variant="h5" color="primary" sx={{ mb: 1, fontWeight: 400 }}>
             Bem-vindo(a)!
           </Typography>
@@ -129,7 +137,8 @@ export default function SaveTheDatePage() {
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </Button>
-        </Box>
+          </CardContent>
+        </Card>
       </Box>
     </GuestLayout>
   );

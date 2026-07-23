@@ -59,10 +59,10 @@ export default function AdminMediaPage() {
     enabled: !!commentsItem,
   });
 
-  const statusColor: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
-    ACTIVE: 'success',
-    HIDDEN: 'warning',
-    DELETED: 'error',
+  const statusColor: Record<string, 'primary' | 'secondary' | 'info' | 'default'> = {
+    ACTIVE: 'primary',
+    HIDDEN: 'secondary',
+    DELETED: 'info',
   };
 
   const statusLabel: Record<string, string> = {

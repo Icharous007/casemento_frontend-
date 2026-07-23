@@ -20,16 +20,16 @@ import {
 
 const PAGE_SIZE = 20;
 
-const statusColor: Record<string, 'default' | 'success' | 'error' | 'warning'> = {
+const statusColor: Record<string, 'default' | 'primary' | 'secondary' | 'info'> = {
   INVITED: 'default',
-  ACTIVE: 'success',
-  BLOCKED: 'error',
+  ACTIVE: 'primary',
+  BLOCKED: 'secondary',
 };
 
-const rsvpColor: Record<string, 'default' | 'success' | 'error' | 'warning'> = {
-  ATTENDING: 'success',
-  DECLINED: 'error',
-  PENDING: 'warning',
+const rsvpColor: Record<string, 'default' | 'primary' | 'secondary' | 'info'> = {
+  ATTENDING: 'primary',
+  DECLINED: 'secondary',
+  PENDING: 'info',
 };
 
 export default function GuestsPage() {

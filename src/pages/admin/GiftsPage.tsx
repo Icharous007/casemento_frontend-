@@ -147,9 +147,13 @@ export default function AdminGiftsPage() {
                   <TableCell>
                     {(() => {
                       let giftStatusLabel = 'Indisponível';
-                      let giftStatusColor: 'success' | 'default' | 'warning' = 'warning';
-                      if (item.status === 'AVAILABLE') { giftStatusLabel = 'Disponível'; giftStatusColor = 'success'; }
-                      else if (item.status === 'PURCHASED') { giftStatusLabel = 'Comprado'; giftStatusColor = 'default'; }
+                      let giftStatusColor: 'default' | 'primary' | 'secondary' = 'secondary';
+                      if (item.status === 'AVAILABLE') {
+                        giftStatusLabel = 'Disponível';
+                        giftStatusColor = 'primary';
+                      } else if (item.status === 'PURCHASED') {
+                        giftStatusLabel = 'Comprado';
+                      }
                       return <Chip size="small" label={giftStatusLabel} color={giftStatusColor} />;
                     })()}
                   </TableCell>

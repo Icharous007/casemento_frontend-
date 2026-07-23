@@ -67,7 +67,7 @@ export default function AdminRsvpPage() {
       <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 4 }}>
         <Card sx={{ flex: 1, minWidth: 180 }} elevation={2}>
           <CardContent>
-            <Typography variant="h3" sx={{ fontWeight: 600 }} color="success.main">
+            <Typography variant="h3" sx={{ fontWeight: 600 }} color="primary.main">
               {summary?.attending ?? '—'}
             </Typography>
             <Typography variant="body2" color="text.secondary">Confirmados</Typography>
@@ -75,7 +75,7 @@ export default function AdminRsvpPage() {
         </Card>
         <Card sx={{ flex: 1, minWidth: 180 }} elevation={2}>
           <CardContent>
-            <Typography variant="h3" sx={{ fontWeight: 600 }} color="error.main">
+            <Typography variant="h3" sx={{ fontWeight: 600 }} color="secondary.main">
               {summary?.declined ?? '—'}
             </Typography>
             <Typography variant="body2" color="text.secondary">Recusados</Typography>
@@ -83,7 +83,7 @@ export default function AdminRsvpPage() {
         </Card>
         <Card sx={{ flex: 1, minWidth: 180 }} elevation={2}>
           <CardContent>
-            <Typography variant="h3" sx={{ fontWeight: 600 }} color="warning.main">
+            <Typography variant="h3" sx={{ fontWeight: 600 }} color="info.main">
               {total - responded}
             </Typography>
             <Typography variant="body2" color="text.secondary">Sem resposta</Typography>
@@ -102,7 +102,7 @@ export default function AdminRsvpPage() {
         <LinearProgress
           variant="determinate"
           value={attendingPct}
-          color="success"
+          color="primary"
           sx={{ height: 8, borderRadius: 4 }}
         />
       </Card>
@@ -129,7 +129,7 @@ export default function AdminRsvpPage() {
                 <TableCell>
                   <Chip
                     label={r.attendanceStatus === 'ATTENDING' ? 'Confirmado' : 'Recusado'}
-                    color={r.attendanceStatus === 'ATTENDING' ? 'success' : 'error'}
+                    color={r.attendanceStatus === 'ATTENDING' ? 'primary' : 'secondary'}
                     size="small"
                   />
                 </TableCell>

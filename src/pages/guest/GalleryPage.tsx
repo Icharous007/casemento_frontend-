@@ -27,6 +27,14 @@ const ACCEPTED_VIDEO = 'video/mp4,video/quicktime,video/webm';
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
+const galleryCardSx = {
+  border: '1px solid rgba(181, 154, 199, 0.20)',
+  borderRadius: 4,
+  background: 'linear-gradient(180deg, rgba(255, 253, 251, 0.96), rgba(215, 198, 234, 0.88))',
+  boxShadow: '0 18px 46px rgba(128, 102, 167, 0.14)',
+  overflow: 'hidden',
+};
+
 export default function GalleryPage() {
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -165,32 +173,33 @@ export default function GalleryPage() {
       <Grid container spacing={2}>
         {data.items.map((item) => (
           <Grid size={{ xs: 12, sm: 6 }} key={item.id}>
-            <Card elevation={2}>
+            <Card elevation={0} sx={galleryCardSx}>
               {item.mediaType === 'PHOTO' ? (
                 <CardMedia
                   component="img"
                   height="200"
                   image={item.thumbnailUrl ?? item.url}
                   alt="foto"
-                  sx={{ objectFit: 'cover', cursor: 'pointer' }}
+                  sx={{ objectFit: 'cover', cursor: 'pointer', borderBottom: '1px solid rgba(181, 154, 199, 0.16)' }}
                   onClick={() => setSelectedMedia(item)}
                 />
               ) : (
                 <Box
                   sx={{
                     height: 200,
-                    bgcolor: 'grey.900',
+                    background: 'linear-gradient(180deg, rgba(100, 131, 203, 0.98), rgba(150, 119, 170, 0.96))',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
+                    borderBottom: '1px solid rgba(181, 154, 199, 0.16)',
                   }}
                   onClick={() => setSelectedMedia(item)}
                 >
-                  <PlayCircleOutlineIcon sx={{ fontSize: 64, color: 'white' }} />
+                  <PlayCircleOutlineIcon sx={{ fontSize: 64, color: 'background.paper' }} />
                 </Box>
               )}
-              <CardActions sx={{ px: 1, py: 0.5 }}>
+              <CardActions sx={{ px: 1.5, py: 0.75, borderTop: '1px solid rgba(181, 154, 199, 0.16)' }}>
                 <IconButton
                   size="small"
                   color={item.likedByMe ? 'error' : 'default'}

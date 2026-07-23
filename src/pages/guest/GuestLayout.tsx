@@ -2,9 +2,9 @@ import { type ReactNode } from 'react';
 import { Box, AppBar, Toolbar, Typography } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
-export default function GuestLayout({ children, title }: { children: ReactNode; title?: string }) {
+export default function GuestLayout({ children, title }: Readonly<{ children: ReactNode; title?: string }>) {
     return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'transparent' }}>
       <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
         <Toolbar sx={{ justifyContent: 'center' }}>
           <FavoriteIcon sx={{ color: 'primary.main', mr: 1, fontSize: 18 }} />

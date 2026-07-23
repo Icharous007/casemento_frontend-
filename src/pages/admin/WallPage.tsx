@@ -122,11 +122,18 @@ export default function AdminWallPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      size="small"
-                      label={post.status === 'ACTIVE' ? 'Ativo' : post.status === 'HIDDEN' ? 'Oculto' : 'Excluído'}
-                      color={post.status === 'ACTIVE' ? 'success' : post.status === 'HIDDEN' ? 'warning' : 'error'}
-                    />
+                    {(() => {
+                      let statusLabel = 'Excluído';
+                      let statusColor: 'primary' | 'secondary' | 'info' = 'info';
+                      if (post.status === 'ACTIVE') {
+                        statusLabel = 'Ativo';
+                        statusColor = 'primary';
+                      } else if (post.status === 'HIDDEN') {
+                        statusLabel = 'Oculto';
+                        statusColor = 'secondary';
+                      }
+                      return <Chip size="small" label={statusLabel} color={statusColor} />;
+                    })()}
                   </TableCell>
                   <TableCell>
                     {new Date(post.createdAt).toLocaleDateString('pt-BR')}

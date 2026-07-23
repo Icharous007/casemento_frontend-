@@ -13,10 +13,10 @@ const rsvpLabel: Record<string, string> = {
   PENDING: 'Aguardando confirmação',
 };
 
-const rsvpColor: Record<string, 'success' | 'error' | 'warning'> = {
-  ATTENDING: 'success',
-  DECLINED: 'error',
-  PENDING: 'warning',
+const rsvpColor: Record<string, 'primary' | 'secondary' | 'info'> = {
+  ATTENDING: 'primary',
+  DECLINED: 'secondary',
+  PENDING: 'info',
 };
 
 export default function GuestHomePage() {
@@ -38,7 +38,7 @@ export default function GuestHomePage() {
     <>
       <GlobalStyles
         styles={{
-          body: { backgroundColor: '#120c09' },
+          body: { backgroundColor: '#fff8f5' },
           '#root': {
             width: '100%',
             maxWidth: '100%',
@@ -53,7 +53,7 @@ export default function GuestHomePage() {
       <Box className="save-date-page">
         <Box
           className="save-date-backdrop"
-          sx={{ backgroundImage: `linear-gradient(180deg, rgba(18, 12, 9, 0.24), rgba(18, 12, 9, 0.9)), url(${saveTheDateImage})` }}
+          sx={{ backgroundImage: `linear-gradient(180deg, rgba(255, 248, 245, 0.30), rgba(181, 154, 199, 0.22)), url(${saveTheDateImage})` }}
         />
 
         <Box className="save-date-shell">

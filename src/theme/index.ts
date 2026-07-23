@@ -3,25 +3,50 @@ import { createTheme } from '@mui/material/styles';
 export const theme = createTheme({
   palette: {
     primary: {
-      main: '#c8a2c8',      // lavanda rosada
-      light: '#e8d5e8',
-      dark: '#9a759a',
+      main: '#7d98da',
+      light: '#a9c8ea',
+      dark: '#6483cb',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#c9a84c',      // dourado elegante
-      light: '#f0d078',
-      dark: '#967a2a',
+      main: '#b59ac7',
+      light: '#d5b7e3',
+      dark: '#9677aa',
+      contrastText: '#ffffff',
+    },
+    info: {
+      main: '#a9c8ea',
+      light: '#d8e7f6',
+      dark: '#86a8cd',
+      contrastText: '#20324e',
+    },
+    warning: {
+      main: '#d8c0e3',
+      light: '#f1e4f6',
+      dark: '#b292bf',
+      contrastText: '#4b3f5d',
+    },
+    success: {
+      main: '#7d98da',
+      light: '#a9c8ea',
+      dark: '#6483cb',
+      contrastText: '#ffffff',
+    },
+    error: {
+      main: '#9f84b3',
+      light: '#c6b2d1',
+      dark: '#7b628c',
       contrastText: '#ffffff',
     },
     background: {
-      default: '#faf8f5',
-      paper: '#ffffff',
+      default: '#fff8f5',
+      paper: '#fffdfb',
     },
     text: {
-      primary: '#3d2b2b',
-      secondary: '#7a6060',
+      primary: '#4b3f5d',
+      secondary: '#7c6f8d',
     },
+    divider: '#eadfec',
   },
   typography: {
     fontFamily: '"Lato", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -38,13 +63,14 @@ export const theme = createTheme({
         root: {
           textTransform: 'none',
           fontWeight: 500,
+          borderRadius: 999,
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+          boxShadow: '0 12px 28px rgba(120, 95, 160, 0.10)',
         },
       },
     },
