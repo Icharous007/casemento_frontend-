@@ -65,10 +65,14 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #fff;
-  background-image: url('./assets/background.png');
-  background-repeat: repeat;
-  background-position: center top;
+  background-image:
+    linear-gradient(0deg, rgba(255, 248, 245, 0.72) 0%, rgba(247, 238, 252, 0.72) 100%),
+    url('./assets/background.png'),
+    linear-gradient(0deg, #fff8f5 0%, #f7eefc 100%);
+  background-repeat: no-repeat, repeat, no-repeat;
+  background-position: 0 0, center top, 0 0;
+  background-size: cover, auto, cover;
+  background-blend-mode: normal, multiply, normal;
 }
 
 h1,

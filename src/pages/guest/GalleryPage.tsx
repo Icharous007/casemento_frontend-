@@ -4,7 +4,7 @@ import {
   Box, Typography, Card, CardMedia, CardActions,
   IconButton, Button, TextField, CircularProgress, Alert,
   Grid, Dialog, DialogTitle, DialogContent, DialogActions,
-  Stack, Divider, Chip,
+  Stack, Divider,
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -122,7 +122,7 @@ export default function GalleryPage() {
 
   return (
     <GuestLayout title="Galeria">
-      <Typography variant="h5" color="primary" sx={{ fontWeight: 400, textAlign: 'center', mb: 0.5 }}>
+      <Typography variant="h5" sx={{ fontWeight: 400, textAlign: 'center', mb: 0.5 }}>
         Galeria de Fotos e Vídeos 📸
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 3 }}>
@@ -152,18 +152,30 @@ export default function GalleryPage() {
 
       {/* Sort */}
       <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-        <Chip
-          label="Mais recentes"
-          variant={sort === 'recent' ? 'filled' : 'outlined'}
-          color="primary"
+        <Button
+          variant={sort === 'recent' ? 'contained' : 'outlined'}
+          size="small"
           onClick={() => setSort('recent')}
-        />
-        <Chip
-          label="Mais curtidos"
-          variant={sort === 'popular' ? 'filled' : 'outlined'}
-          color="primary"
+          sx={{
+            borderRadius: 999,
+            px: 2.5,
+            ...(sort !== 'recent' && { bgcolor: 'background.paper' }),
+          }}
+        >
+          Mais recentes
+        </Button>
+        <Button
+          variant={sort === 'popular' ? 'contained' : 'outlined'}
+          size="small"
           onClick={() => setSort('popular')}
-        />
+          sx={{
+            borderRadius: 999,
+            px: 2.5,
+            ...(sort !== 'popular' && { bgcolor: 'background.paper' }),
+          }}
+        >
+          Mais curtidos
+        </Button>
       </Stack>
 
       {data.items.length === 0 && (

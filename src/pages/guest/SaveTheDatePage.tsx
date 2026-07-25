@@ -24,11 +24,15 @@ const saveDateCardSx = {
 
 function resolveError(err: unknown): string {
   const resp = (err as any)?.response;
+  if (!resp) {
+    return 'Nao foi possivel conectar ao servidor. Verifique se a API esta ativa e tente novamente.';
+  }
   const code: string | undefined = resp?.data?.code;
   if (code && ERROR_MESSAGES[code]) return ERROR_MESSAGES[code];
   if (resp?.status === 404) return ERROR_MESSAGES.NOT_FOUND;
   if (resp?.status === 429) return 'Muitas requisições. Aguarde um momento e tente novamente.';
-  return resp?.data?.message ?? 'Erro inesperado. Tente novamente.';
+  if (resp?.data?.message) return resp.data.message;
+  return `Falha ao entrar (status ${resp?.status ?? 'desconhecido'}${code ? `, codigo ${code}` : ''}).`;
 }
 
 export default function SaveTheDatePage() {
@@ -49,9 +53,10 @@ export default function SaveTheDatePage() {
     setError('');
     setLoading(true);
     try {
+      const normalizedPhone = phone.replace(/\D/g, '');
       const res = await registerGuestAccess({
         eventSlug,
-        phone,
+        phone: normalizedPhone,
         displayName,
         acceptedTerms,
       });
@@ -67,7 +72,7 @@ export default function SaveTheDatePage() {
   // ─── No event slug in URL ──────────────────────────────────────────────────
   if (!eventSlug) {
     return (
-      <GuestLayout>
+      <GuestLayout showHomeButton={false}>
         <Box sx={{ textAlign: 'center', py: 4 }}>
           <Alert severity="warning" sx={{ mb: 2 }}>
             Link inválido. Escaneie o QR code do evento para acessar.
@@ -78,11 +83,11 @@ export default function SaveTheDatePage() {
   }
 
   return (
-    <GuestLayout>
+    <GuestLayout showHomeButton={false}>
       <Box sx={{ textAlign: 'center', py: 2 }}>
         <Card elevation={0} sx={saveDateCardSx}>
           <CardContent sx={{ p: { xs: 3, sm: 4 }, '&:last-child': { pb: { xs: 3, sm: 4 } } }}>
-          <Typography variant="h5" color="primary" sx={{ mb: 1, fontWeight: 400 }}>
+          <Typography variant="h5" sx={{ mb: 1, fontWeight: 400 }}>
             Bem-vindo(a)!
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>

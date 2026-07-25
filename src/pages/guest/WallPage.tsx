@@ -158,7 +158,7 @@ export default function WallPage() {
 
   return (
     <GuestLayout title="Mural">
-      <Typography variant="h5" color="primary" sx={{ fontWeight: 400, textAlign: 'center', mb: 0.5 }}>
+      <Typography variant="h5" sx={{ fontWeight: 400, textAlign: 'center', mb: 0.5 }}>
         Mural de Mensagens 💌
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 3 }}>

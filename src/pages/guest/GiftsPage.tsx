@@ -71,7 +71,7 @@ export default function GiftsPage() {
 
   return (
     <GuestLayout title="Lista de Presentes">
-      <Typography variant="h5" color="primary" sx={{ fontWeight: 400, textAlign: 'center', mb: 0.5 }}>
+      <Typography variant="h5" sx={{ fontWeight: 400, textAlign: 'center', mb: 0.5 }}>
         Lista de Presentes 🎁
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 3 }}>

@@ -3,9 +3,19 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Alert, Box, Button, Chip, CircularProgress, GlobalStyles, Stack, Typography,
 } from '@mui/material';
+import PlaceIcon from '@mui/icons-material/Place';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { getMe } from '../../api/guestApi';
+import { EVENT_LOCATIONS } from '../../api/locationsApi';
 import saveTheDateImage from '../../assets/save_the_date.png';
+import ceremonyImage from '../../assets/local_cerimonia_casamento.png';
+import partyImage from '../../assets/local_festa_casamento.png';
 import './HomePage.css';
+
+const locationImages: Record<string, string> = {
+  cerimonia: ceremonyImage,
+  festa: partyImage,
+};
 
 const rsvpLabel: Record<string, string> = {
   ATTENDING: '✓ Presença confirmada',
@@ -30,9 +40,7 @@ export default function GuestHomePage() {
   const eventTitle = data?.event.title ?? 'Nosso Casamento';
   const coupleNames = data?.event.coupleNames;
   const rsvpStatus = data?.rsvpStatus;
-  const rsvpDeadline = data?.event.rsvpDeadlineAt
-    ? new Date(data.event.rsvpDeadlineAt).toLocaleDateString('pt-BR')
-    : null;
+  const rsvpDeadline = '30/09/2026';
 
   return (
     <>
@@ -103,7 +111,7 @@ export default function GuestHomePage() {
               </Alert>
             )}
 
-            {rsvpDeadline && !isError && (
+            {rsvpDeadline && (
               <Typography className="save-date-meta">
                 RSVP até {rsvpDeadline}
               </Typography>
@@ -149,6 +157,58 @@ export default function GuestHomePage() {
                 </Button>
               </Stack>
             </Stack>
+
+            {/* ─── Localização ─────────────────────────────────────────── */}
+            <Box className="location-section">
+              <Typography
+                className="location-heading"
+                sx={{
+                  fontSize: { xs: '1.5rem', sm: '0.92rem' },
+                  fontWeight: { xs: 600, sm: 500 },
+                  letterSpacing: { xs: '0.03em', sm: '0.22em' },
+                  textTransform: { xs: 'none', sm: 'uppercase' },
+                }}
+              >
+                <PlaceIcon sx={{ verticalAlign: 'middle', mr: 0.5, fontSize: { xs: 26, sm: 20 } }} />
+                Como chegar
+              </Typography>
+
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2.5, sm: 2 }} className="location-cards">
+                {EVENT_LOCATIONS.map((loc) => (
+                  <Box
+                    key={loc.id}
+                    component="a"
+                    href={loc.mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="location-card"
+                    aria-label={`Ver ${loc.label} no Google Maps`}
+                  >
+                    <Box
+                      component="img"
+                      src={locationImages[loc.id]}
+                      alt={`Local da ${loc.label} – ${loc.subtitle}`}
+                      className="location-card__img"
+                    />
+                    <Box className="location-card__body">
+                      <Typography className="location-card__label" sx={{ fontSize: { xs: '1.3rem', sm: '1.15rem' } }}>
+                        {loc.label}
+                      </Typography>
+                      <Typography className="location-card__subtitle" sx={{ fontSize: { xs: '0.92rem', sm: '0.82rem' } }}>
+                        {loc.subtitle}
+                      </Typography>
+                      <Typography className="location-card__address" sx={{ fontSize: { xs: '0.88rem', sm: '0.78rem' } }}>
+                        {loc.address}
+                      </Typography>
+                      <Box className="location-card__cta">
+                        <OpenInNewIcon fontSize="inherit" />
+                        <span>Ver no Maps</span>
+                      </Box>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
           </Box>
         </Box>
       </Box>

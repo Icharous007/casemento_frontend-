@@ -59,7 +59,7 @@ export default function GuestRsvpPage() {
 
   return (
     <GuestLayout title="RSVP">
-      <Typography variant="h5" color="primary" sx={{ fontWeight: 400, textAlign: "center", mb: 1 }}>
+      <Typography variant="h5" sx={{ fontWeight: 400, textAlign: "center", mb: 1 }}>
         Confirmação de Presença
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mb: 3 }}>

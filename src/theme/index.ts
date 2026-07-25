@@ -50,9 +50,12 @@ export const theme = createTheme({
   },
   typography: {
     fontFamily: '"Lato", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: { fontWeight: 300, letterSpacing: '0.05em' },
-    h2: { fontWeight: 300, letterSpacing: '0.04em' },
-    h3: { fontWeight: 400, letterSpacing: '0.03em' },
+    h1: { fontFamily: '"Lavishly Yours", cursive', fontWeight: 400, fontSize: '4rem', letterSpacing: '0.05em', color: '#4b3f5d' },
+    h2: { fontFamily: '"Lavishly Yours", cursive', fontWeight: 400, fontSize: '3.2rem', letterSpacing: '0.04em', color: '#4b3f5d' },
+    h3: { fontFamily: '"Lavishly Yours", cursive', fontWeight: 400, fontSize: '2.6rem', letterSpacing: '0.03em', color: '#4b3f5d' },
+    h4: { fontFamily: '"Lavishly Yours", cursive', fontWeight: 400, fontSize: '2rem', color: '#4b3f5d' },
+    h5: { fontFamily: '"Lavishly Yours", cursive', fontWeight: 400, fontSize: '1.6rem', color: '#4b3f5d' },
+    h6: { fontFamily: '"Lavishly Yours", cursive', fontWeight: 400, fontSize: '1.3rem', color: '#4b3f5d' },
   },
   shape: {
     borderRadius: 8,
