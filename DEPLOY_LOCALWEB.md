@@ -280,8 +280,8 @@ server {
     gzip_min_length 256;
     gzip_vary on;
 
-    # ─── Limitar upload (import CSV, fotos galeria) ───────────────────────
-    client_max_body_size 20M;
+    # ─── Limitar upload (vídeos da galeria até 50 MB + overhead multipart) ─
+    client_max_body_size 60M;
 }
 ```
 

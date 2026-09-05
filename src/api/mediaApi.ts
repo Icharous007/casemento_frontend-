@@ -75,6 +75,7 @@ export async function uploadMedia(file: File): Promise<MediaItem> {
   form.append('file', file);
   const { data } = await guestClient.post<MediaItem>('/media/upload', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120_000,
   });
   return data;
 }

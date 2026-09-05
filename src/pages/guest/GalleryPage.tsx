@@ -7,18 +7,18 @@ import {
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import GuestLayout from './GuestLayout';
+import MediaComposer from '../../components/guest/MediaComposer';
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import { getMe } from '../../api/guestApi';
 import {
   listMedia,
-  uploadMedia,
   addMediaLike,
   removeMediaLike,
   addMediaComment,
@@ -28,9 +28,6 @@ import {
 } from '../../api/mediaApi';
 import './GalleryPage.css';
 
-const ACCEPTED_MEDIA = 'image/*,video/*,.heic,.heif,.jpg,.jpeg,.png,.webp,.mp4,.mov,.m4v,.webm';
-const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
-const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const DOUBLE_TAP_MS = 450;
 const DOUBLE_TAP_MIN_MS = 40;
 const DOUBLE_TAP_SLOP = 56;
@@ -83,16 +80,6 @@ function initialsFromName(name: string) {
   return `${parts[0].slice(0, 1)}${parts[parts.length - 1].slice(0, 1)}`.toUpperCase();
 }
 
-function isPhotoFile(file: File) {
-  const name = file.name.toLowerCase();
-  return file.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif)$/.test(name);
-}
-
-function isVideoFile(file: File) {
-  const name = file.name.toLowerCase();
-  return file.type.startsWith('video/') || /\.(mp4|mov|qt|webm|m4v)$/.test(name);
-}
-
 type TapPoint = { time: number; id: string; x: number; y: number };
 
 function isDoubleTap(last: TapPoint, itemId: string, x: number, y: number) {
@@ -107,7 +94,6 @@ function isDoubleTap(last: TapPoint, itemId: string, x: number, y: number) {
 export default function GalleryPage() {
   const qc = useQueryClient();
   const { guest } = useGuestAuth();
-  const fileRef = useRef<HTMLInputElement>(null);
   const reelsRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const lastTapRef = useRef<TapPoint>({ time: 0, id: '', x: 0, y: 0 });
@@ -115,13 +101,14 @@ export default function GalleryPage() {
   const lastLikeGestureRef = useRef(0);
   const pendingScrollIndex = useRef<number | null>(null);
   const skipObserverRef = useRef(false);
+  const pausedByUserRef = useRef(false);
+  const singleTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [sort, setSort] = useState<'recent' | 'popular'>('recent');
   const [page] = useState(1);
-  const [uploadError, setUploadError] = useState('');
-  const [uploading, setUploading] = useState(false);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [muted, setMuted] = useState(true);
+  const [pausedMediaId, setPausedMediaId] = useState<string | null>(null);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [heartBurstId, setHeartBurstId] = useState<string | null>(null);
@@ -134,6 +121,7 @@ export default function GalleryPage() {
   const items = useMemo(() => data?.items ?? [], [data?.items]);
   const viewerOpen = viewerIndex != null;
   const selectedMedia = viewerIndex != null ? items[viewerIndex] ?? null : null;
+  const paused = selectedMedia?.id != null && selectedMedia.id === pausedMediaId;
 
   const { data: me } = useQuery({
     queryKey: ['guest', 'me'],
@@ -239,41 +227,60 @@ export default function GalleryPage() {
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
         if (!visible) return;
         const index = Number((visible.target as HTMLElement).dataset.index);
-        if (!Number.isNaN(index)) setViewerIndex(index);
+        if (!Number.isNaN(index) && index !== viewerIndex) {
+          pausedByUserRef.current = false;
+          setViewerIndex(index);
+        }
       },
       { root, threshold: [0.65, 0.9] },
     );
 
     Array.from(root.children).forEach((child) => observer.observe(child));
     return () => observer.disconnect();
-  }, [viewerOpen, items.length]);
-
-  useEffect(() => {
-    Object.entries(videoRefs.current).forEach(([id, video]) => {
-      if (!video) return;
-      video.muted = muted;
-      if (selectedMedia?.id === id) {
-        void video.play().catch(() => undefined);
-      } else {
-        video.pause();
-      }
-    });
-  }, [selectedMedia?.id, muted]);
+  }, [viewerOpen, items.length, viewerIndex]);
 
   function openViewer(index: number) {
     pendingScrollIndex.current = index;
     skipObserverRef.current = true;
+    pausedByUserRef.current = false;
+    setPausedMediaId(null);
     setViewerIndex(index);
     setCommentsOpen(false);
     setCommentText('');
   }
 
   function closeViewer() {
+    if (singleTapTimerRef.current != null) {
+      window.clearTimeout(singleTapTimerRef.current);
+      singleTapTimerRef.current = null;
+    }
+    pausedByUserRef.current = false;
+    setPausedMediaId(null);
     Object.values(videoRefs.current).forEach((video) => video?.pause());
     setViewerIndex(null);
     setCommentsOpen(false);
     setCommentText('');
     setHeartBurstId(null);
+  }
+
+  function togglePause(item: MediaItem) {
+    if (item.mediaType !== 'VIDEO') return;
+    const video = videoRefs.current[item.id];
+    if (!video) return;
+    if (paused || video.paused) {
+      pausedByUserRef.current = false;
+      video.volume = 1;
+      void video.play().catch(() => undefined);
+      setPausedMediaId(null);
+      return;
+    }
+    pausedByUserRef.current = true;
+    video.pause();
+    setPausedMediaId(item.id);
+  }
+
+  function handleMuteToggle() {
+    setMuted((value) => !value);
   }
 
   function showHeartBurst(itemId: string) {
@@ -299,11 +306,25 @@ export default function GalleryPage() {
   function handleMediaTap(item: MediaItem, x: number, y: number) {
     const last = lastTapRef.current;
     if (isDoubleTap(last, item.id, x, y)) {
+      if (singleTapTimerRef.current != null) {
+        window.clearTimeout(singleTapTimerRef.current);
+        singleTapTimerRef.current = null;
+      }
       lastTapRef.current = { time: 0, id: '', x: 0, y: 0 };
       likeFromGesture(item);
       return;
     }
     lastTapRef.current = { time: performance.now(), id: item.id, x, y };
+    if (item.mediaType !== 'VIDEO') return;
+    if (muted) {
+      setMuted(false);
+      return;
+    }
+    if (singleTapTimerRef.current != null) window.clearTimeout(singleTapTimerRef.current);
+    singleTapTimerRef.current = window.setTimeout(() => {
+      singleTapTimerRef.current = null;
+      togglePause(item);
+    }, DOUBLE_TAP_MS);
   }
 
   function handleTapPointerDown(event: ReactPointerEvent<HTMLElement>) {
@@ -319,38 +340,6 @@ export default function GalleryPage() {
       return;
     }
     handleMediaTap(item, event.clientX, event.clientY);
-  }
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = '';
-    setUploadError('');
-
-    const isPhoto = isPhotoFile(file);
-    const isVideo = isVideoFile(file);
-    if (!isPhoto && !isVideo) {
-      setUploadError('Tipo de arquivo não suportado. Use fotos (JPEG/PNG/HEIC) ou vídeos (MP4/MOV/WebM).');
-      return;
-    }
-    if (isPhoto && file.size > MAX_PHOTO_BYTES) {
-      setUploadError('Foto muito grande. Tamanho máximo: 10 MB.');
-      return;
-    }
-    if (isVideo && file.size > MAX_VIDEO_BYTES) {
-      setUploadError('Vídeo muito grande. Tamanho máximo: 50 MB.');
-      return;
-    }
-
-    setUploading(true);
-    try {
-      await uploadMedia(file);
-      qc.invalidateQueries({ queryKey: ['guest', 'media'] });
-    } catch {
-      setUploadError('Falha no envio. Tente novamente.');
-    } finally {
-      setUploading(false);
-    }
   }
 
   if (isLoading) {
@@ -378,25 +367,7 @@ export default function GalleryPage() {
         Compartilhe seus momentos especiais do evento!
       </Typography>
 
-      <Box sx={{ mb: 3 }}>
-        {uploadError && <Alert severity="error" sx={{ mb: 1 }}>{uploadError}</Alert>}
-        <input
-          ref={fileRef}
-          type="file"
-          accept={ACCEPTED_MEDIA}
-          style={{ display: 'none' }}
-          onChange={handleFileChange}
-        />
-        <Button
-          variant="contained"
-          fullWidth
-          startIcon={uploading ? <CircularProgress size={18} color="inherit" /> : <CloudUploadIcon />}
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-        >
-          {uploading ? 'Enviando...' : 'Enviar foto ou vídeo'}
-        </Button>
-      </Box>
+      <MediaComposer />
 
       <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
         <Button
@@ -552,7 +523,7 @@ export default function GalleryPage() {
             </Typography>
             <IconButton
               aria-label={muted ? 'Ativar som' : 'Silenciar'}
-              onClick={() => setMuted((value) => !value)}
+              onClick={handleMuteToggle}
               sx={{
                 color: '#fff',
                 visibility: selectedMedia.mediaType === 'VIDEO' ? 'visible' : 'hidden',
@@ -583,15 +554,22 @@ export default function GalleryPage() {
                       component="video"
                       ref={(node: HTMLVideoElement | null) => {
                         videoRefs.current[item.id] = node;
+                        if (node && !active) node.pause();
                       }}
                       src={item.url}
                       playsInline
                       loop
                       muted={muted}
-                      autoPlay={active}
-                      preload="metadata"
+                      autoPlay={active && !paused}
+                      preload="auto"
                       disablePictureInPicture
                       className="gallery-reel-media is-video"
+                      onPlay={() => {
+                        if (active) setPausedMediaId(null);
+                      }}
+                      onPause={() => {
+                        if (active && pausedByUserRef.current) setPausedMediaId(item.id);
+                      }}
                     />
                   )}
 
@@ -602,6 +580,10 @@ export default function GalleryPage() {
                     onPointerUp={(event) => handleTapPointerUp(event, item)}
                     onDoubleClick={(event) => {
                       event.preventDefault();
+                      if (singleTapTimerRef.current != null) {
+                        window.clearTimeout(singleTapTimerRef.current);
+                        singleTapTimerRef.current = null;
+                      }
                       lastTapRef.current = { time: 0, id: '', x: 0, y: 0 };
                       likeFromGesture(item);
                     }}
@@ -609,6 +591,22 @@ export default function GalleryPage() {
 
                   {heartBurstId === item.id && (
                     <FavoriteIcon className="gallery-heart-burst" />
+                  )}
+
+                  {item.mediaType === 'VIDEO' && active && paused && (
+                    <PlayArrowRoundedIcon
+                      sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 4,
+                        fontSize: 88,
+                        color: 'rgba(255,255,255,.92)',
+                        filter: 'drop-shadow(0 4px 12px rgba(0,0,0,.45))',
+                        pointerEvents: 'none',
+                      }}
+                    />
                   )}
 
                   <Box
@@ -624,6 +622,29 @@ export default function GalleryPage() {
                       color: '#fff',
                     }}
                   >
+                    {item.mediaType === 'VIDEO' && (
+                      <Box sx={{ textAlign: 'center' }}>
+                        <IconButton
+                          aria-label={paused && active ? 'Reproduzir' : 'Pausar'}
+                          onPointerUp={(event) => event.stopPropagation()}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            if (singleTapTimerRef.current != null) {
+                              window.clearTimeout(singleTapTimerRef.current);
+                              singleTapTimerRef.current = null;
+                            }
+                            togglePause(item);
+                          }}
+                          sx={{
+                            color: '#fff',
+                            bgcolor: 'rgba(0,0,0,.28)',
+                            '&:hover': { bgcolor: 'rgba(0,0,0,.42)' },
+                          }}
+                        >
+                          {paused && active ? <PlayArrowRoundedIcon /> : <PauseRoundedIcon />}
+                        </IconButton>
+                      </Box>
+                    )}
                     <Box sx={{ textAlign: 'center' }}>
                       <IconButton
                         aria-label={item.likedByMe ? 'Remover curtida' : 'Curtir'}
@@ -693,7 +714,7 @@ export default function GalleryPage() {
                       </Box>
                     </Stack>
                     <Typography sx={{ fontSize: 13, opacity: 0.92 }}>
-                      Toque duas vezes para curtir · deslize para o próximo momento
+                      Toque para pausar · toque duas vezes para curtir
                     </Typography>
                   </Box>
                 </Box>
