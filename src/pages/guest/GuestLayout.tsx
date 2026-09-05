@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, AppBar, Toolbar, Typography, Button } from '@mui/material';
+import { Box, AppBar, Toolbar, Typography, Button, GlobalStyles } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import HomeIcon from '@mui/icons-material/Home';
 
@@ -8,9 +8,36 @@ export default function GuestLayout({ children, title, showHomeButton = true }: 
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'transparent' }}>
-      <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Toolbar sx={{ justifyContent: 'center', position: 'relative', minHeight: { xs: 64 } }}>
+    <Box sx={{ minHeight: '100svh', bgcolor: 'transparent' }}>
+      <GlobalStyles
+        styles={{
+          html: { height: '100%' },
+          body: {
+            minHeight: '100svh',
+            overscrollBehaviorY: 'none',
+          },
+          '#root': {
+            width: '100%',
+            maxWidth: '100%',
+            margin: 0,
+            borderInline: 'none',
+            minHeight: '100svh',
+            display: 'block',
+            textAlign: 'initial',
+          },
+        }}
+      />
+      <AppBar
+        position="static"
+        color="transparent"
+        elevation={0}
+        sx={{
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          pt: 'env(safe-area-inset-top)',
+        }}
+      >
+        <Toolbar sx={{ justifyContent: 'center', position: 'relative', minHeight: { xs: 56, sm: 64 } }}>
           {showHomeButton && (
             <Button
               onClick={() => navigate('/home')}
@@ -40,7 +67,7 @@ export default function GuestLayout({ children, title, showHomeButton = true }: 
           <FavoriteIcon sx={{ color: 'primary.main', ml: 1, fontSize: 18 }} />
         </Toolbar>
       </AppBar>
-      <Box sx={{ maxWidth: 600, mx: 'auto', px: 2, py: 4 }}>
+      <Box sx={{ maxWidth: 600, mx: 'auto', px: 2, py: 4, pb: 'max(32px, env(safe-area-inset-bottom))' }}>
         {children}
       </Box>
     </Box>

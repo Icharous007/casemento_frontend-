@@ -7,6 +7,7 @@ import PlaceIcon from '@mui/icons-material/Place';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { getMe } from '../../api/guestApi';
 import { EVENT_LOCATIONS } from '../../api/locationsApi';
+import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import saveTheDateImage from '../../assets/save_the_date.png';
 import ceremonyImage from '../../assets/local_cerimonia_casamento.png';
 import partyImage from '../../assets/local_festa_casamento.png';
@@ -31,12 +32,13 @@ const rsvpColor: Record<string, 'primary' | 'secondary' | 'info'> = {
 
 export default function GuestHomePage() {
   const navigate = useNavigate();
+  const { guest } = useGuestAuth();
   const { data, isLoading, isError } = useQuery({
     queryKey: ['guest', 'me'],
     queryFn: getMe,
   });
 
-  const guestName = data?.displayName;
+  const guestName = guest?.displayName || data?.displayName;
   const eventTitle = data?.event.title ?? 'Nosso Casamento';
   const coupleNames = data?.event.coupleNames;
   const rsvpStatus = data?.rsvpStatus;

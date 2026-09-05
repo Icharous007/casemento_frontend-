@@ -22,6 +22,9 @@ export interface MediaItem {
   status?: string;
   fileSizeBytes?: number;
   contentType?: string;
+  guestId?: string;
+  guestName?: string;
+  displayName?: string;
 }
 
 export interface MediaListResponse {
