@@ -132,7 +132,7 @@ export default function MediaCaptureBar({ disabled, onFile }: Props) {
             Gravar vídeo
           </Button>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 0.5 }}>
-            Até 50 MB
+            Até 200 MB / 60s
           </Typography>
         </Box>
         <Button

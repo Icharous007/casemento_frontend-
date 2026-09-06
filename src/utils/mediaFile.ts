@@ -1,7 +1,10 @@
-/** Espelha MediaService no backend: JPEG/PNG/HEIC + MP4/MOV/WebM, 10 MB / 50 MB. */
+/** Espelha MediaService no backend: JPEG/PNG/HEIC + MP4/MOV/WebM, 10 MB / 200 MB. */
 
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
-export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+export const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
+export const MAX_VIDEO_DURATION_SECONDS = 60;
+const PHOTO_MAX_DIMENSION = 2000;
+const PHOTO_JPEG_QUALITY = 0.85;
 
 export const ALLOWED_PHOTO_TYPES = new Set([
   'image/jpeg',
@@ -70,7 +73,75 @@ export function validateMediaFile(file: File): string | null {
     return 'Fotos devem ter no máximo 10 MB.';
   }
   if (video && file.size > MAX_VIDEO_BYTES) {
-    return 'Vídeos devem ter no máximo 50 MB.';
+    return 'Vídeos devem ter no máximo 200 MB.';
+  }
+  return null;
+}
+
+/**
+ * Downscales/re-encodes a photo client-side (canvas) before upload so large phone
+ * photos don't have to travel over the network at full resolution. Falls back to the
+ * original file whenever compression isn't possible or doesn't shrink it (HEIC decode
+ * support is unreliable across browsers, so those are always left untouched).
+ */
+export async function compressImage(file: File): Promise<File> {
+  const mime = inferMediaContentType(file);
+  if (mime === 'image/heic' || mime === 'image/heif') return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, PHOTO_MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    if (scale >= 1) {
+      bitmap.close();
+      return file;
+    }
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      bitmap.close();
+      return file;
+    }
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, 'image/jpeg', PHOTO_JPEG_QUALITY));
+    if (!blob || blob.size === 0 || blob.size >= file.size) return file;
+    const newName = `${file.name.replace(/\.[^./\\]+$/, '')}.jpg`;
+    return new File([blob], newName, { type: 'image/jpeg', lastModified: file.lastModified });
+  } catch {
+    return file;
+  }
+}
+
+function readVideoDuration(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve(video.duration);
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('video_metadata_failed'));
+    };
+    video.src = url;
+  });
+}
+
+/** Returns an error message if the video is longer than MAX_VIDEO_DURATION_SECONDS, or null if OK/unknown. */
+export async function validateVideoDuration(file: File): Promise<string | null> {
+  try {
+    const duration = await readVideoDuration(file);
+    if (Number.isFinite(duration) && duration > MAX_VIDEO_DURATION_SECONDS) {
+      return `Vídeos devem ter no máximo ${MAX_VIDEO_DURATION_SECONDS} segundos.`;
+    }
+  } catch {
+    // couldn't read metadata (unsupported codec/browser) - let the server validate instead
   }
   return null;
 }
@@ -93,7 +164,7 @@ export function uploadErrorMessage(err: unknown): string {
       return response.data.message;
     }
     if (response?.status === 413) {
-      return 'Arquivo muito grande para o servidor. Tamanho máximo: 50 MB.';
+      return 'Arquivo muito grande para o servidor. Tamanho máximo: 200 MB.';
     }
     if (axiosLike.code === 'ECONNABORTED' || /timeout/i.test(axiosLike.message ?? '')) {
       return 'O envio demorou demais. Tente um arquivo menor.';

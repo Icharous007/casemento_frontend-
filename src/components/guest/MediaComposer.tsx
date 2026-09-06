@@ -2,7 +2,16 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert, Box } from '@mui/material';
 import { uploadMedia } from '../../api/mediaApi';
-import { inferMediaContentType, isPhotoFile, prepareMediaFile, uploadErrorMessage, validateMediaFile } from '../../utils/mediaFile';
+import {
+  compressImage,
+  inferMediaContentType,
+  isPhotoFile,
+  isVideoFile,
+  prepareMediaFile,
+  uploadErrorMessage,
+  validateMediaFile,
+  validateVideoDuration,
+} from '../../utils/mediaFile';
 import MediaCaptureBar from './MediaCaptureBar';
 import MediaPreviewDialog from './MediaPreviewDialog';
 import {
@@ -20,9 +29,9 @@ export default function MediaComposer() {
   const [pendingAttempt, setPendingAttempt] = useState<MediaAttempt | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  function handleFile(file: File, attempt: MediaAttempt) {
+  async function handleFile(file: File, attempt: MediaAttempt) {
     setError('');
-    const prepared = prepareMediaFile(file);
+    let prepared = prepareMediaFile(file);
     const contentType = inferMediaContentType(prepared);
     const mediaType = mediaTypeFromMime(contentType);
     logMediaEvent('guest_media_file_selected', attempt, {
@@ -31,6 +40,24 @@ export default function MediaComposer() {
       sizeBytes: prepared.size,
       extension: prepared.name.split('.').pop()?.toLowerCase() || undefined,
     });
+    if (isVideoFile(prepared)) {
+      const durationMessage = await validateVideoDuration(prepared);
+      if (durationMessage) {
+        setPending(null);
+        setPendingAttempt(null);
+        setError(durationMessage);
+        logMediaEvent('guest_media_validation_failed', attempt, {
+          reason: 'video_too_long',
+          mediaType,
+          contentType,
+          sizeBytes: prepared.size,
+        });
+        return;
+      }
+    } else if (isPhotoFile(prepared)) {
+      prepared = await compressImage(prepared);
+    }
+    const finalContentType = inferMediaContentType(prepared);
     const message = validateMediaFile(prepared);
     if (message) {
       setPending(null);
@@ -41,7 +68,7 @@ export default function MediaComposer() {
           ? 'unsupported_type'
           : mediaType === 'photo' ? 'photo_too_large' : 'video_too_large',
         mediaType,
-        contentType,
+        contentType: finalContentType,
         sizeBytes: prepared.size,
       });
       return;
@@ -50,7 +77,7 @@ export default function MediaComposer() {
     setPendingAttempt(attempt);
     logMediaEvent('guest_media_preview_opened', attempt, {
       mediaType,
-      contentType,
+      contentType: finalContentType,
       sizeBytes: prepared.size,
     });
   }
