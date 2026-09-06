@@ -8,10 +8,11 @@ type Props = Readonly<{
   file: File | null;
   uploading: boolean;
   onDiscard: () => void;
+  onPreviewRenderFailed: () => void;
   onPublish: () => void;
 }>;
 
-export default function MediaPreviewDialog({ file, uploading, onDiscard, onPublish }: Props) {
+export default function MediaPreviewDialog({ file, uploading, onDiscard, onPreviewRenderFailed, onPublish }: Props) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
 
@@ -37,7 +38,10 @@ export default function MediaPreviewDialog({ file, uploading, onDiscard, onPubli
             component="img"
             src={previewUrl}
             alt="Prévia da foto"
-            onError={() => setFailedSrc(previewUrl)}
+            onError={() => {
+              setFailedSrc(previewUrl);
+              onPreviewRenderFailed();
+            }}
             sx={{
               display: 'block',
               width: '100%',
@@ -54,6 +58,7 @@ export default function MediaPreviewDialog({ file, uploading, onDiscard, onPubli
             src={previewUrl}
             controls
             playsInline
+            onError={onPreviewRenderFailed}
             sx={{
               display: 'block',
               width: '100%',

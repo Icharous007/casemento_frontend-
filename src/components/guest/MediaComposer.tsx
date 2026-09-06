@@ -2,38 +2,91 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert, Box } from '@mui/material';
 import { uploadMedia } from '../../api/mediaApi';
-import { prepareMediaFile, uploadErrorMessage, validateMediaFile } from '../../utils/mediaFile';
+import { inferMediaContentType, isPhotoFile, prepareMediaFile, uploadErrorMessage, validateMediaFile } from '../../utils/mediaFile';
 import MediaCaptureBar from './MediaCaptureBar';
 import MediaPreviewDialog from './MediaPreviewDialog';
+import {
+  classifyMediaError,
+  elapsedSince,
+  logMediaEvent,
+  mediaTypeFromMime,
+  type MediaAttempt,
+} from '../../utils/mediaTelemetry';
 
 export default function MediaComposer() {
   const qc = useQueryClient();
   const [error, setError] = useState('');
   const [pending, setPending] = useState<File | null>(null);
+  const [pendingAttempt, setPendingAttempt] = useState<MediaAttempt | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  function handleFile(file: File) {
+  function handleFile(file: File, attempt: MediaAttempt) {
     setError('');
     const prepared = prepareMediaFile(file);
+    const contentType = inferMediaContentType(prepared);
+    const mediaType = mediaTypeFromMime(contentType);
+    logMediaEvent('guest_media_file_selected', attempt, {
+      mediaType,
+      contentType,
+      sizeBytes: prepared.size,
+      extension: prepared.name.split('.').pop()?.toLowerCase() || undefined,
+    });
     const message = validateMediaFile(prepared);
     if (message) {
       setPending(null);
+      setPendingAttempt(null);
       setError(message);
+      logMediaEvent('guest_media_validation_failed', attempt, {
+        reason: !isPhotoFile(prepared) && !prepared.type.startsWith('video/')
+          ? 'unsupported_type'
+          : mediaType === 'photo' ? 'photo_too_large' : 'video_too_large',
+        mediaType,
+        contentType,
+        sizeBytes: prepared.size,
+      });
       return;
     }
     setPending(prepared);
+    setPendingAttempt(attempt);
+    logMediaEvent('guest_media_preview_opened', attempt, {
+      mediaType,
+      contentType,
+      sizeBytes: prepared.size,
+    });
   }
 
   async function handlePublish() {
-    if (!pending) return;
+    if (!pending || !pendingAttempt) return;
+    const startedAt = performance.now();
+    const contentType = inferMediaContentType(pending);
+    const mediaType = mediaTypeFromMime(contentType);
     setUploading(true);
     setError('');
+    logMediaEvent('guest_media_upload_started', pendingAttempt, {
+      mediaType,
+      contentType,
+      sizeBytes: pending.size,
+    });
     try {
       await uploadMedia(pending);
       qc.invalidateQueries({ queryKey: ['guest', 'media'] });
+      logMediaEvent('guest_media_upload_succeeded', pendingAttempt, {
+        mediaType,
+        contentType,
+        sizeBytes: pending.size,
+        elapsedMs: elapsedSince(startedAt),
+      });
       setPending(null);
+      setPendingAttempt(null);
     } catch (err) {
       setError(uploadErrorMessage(err));
+      logMediaEvent('guest_media_upload_failed', pendingAttempt, {
+        mediaType,
+        contentType,
+        sizeBytes: pending.size,
+        elapsedMs: elapsedSince(startedAt),
+        ...classifyMediaError(err),
+      });
     } finally {
       setUploading(false);
     }
@@ -46,7 +99,26 @@ export default function MediaComposer() {
       <MediaPreviewDialog
         file={pending}
         uploading={uploading}
-        onDiscard={() => setPending(null)}
+        onDiscard={() => {
+          if (pendingAttempt && pending) {
+            logMediaEvent('guest_media_discarded', pendingAttempt, {
+              stage: 'preview',
+              mediaType: mediaTypeFromMime(inferMediaContentType(pending)),
+              sizeBytes: pending.size,
+            });
+          }
+          setPending(null);
+          setPendingAttempt(null);
+        }}
+        onPreviewRenderFailed={() => {
+          if (pendingAttempt && pending) {
+            logMediaEvent('guest_media_preview_render_failed', pendingAttempt, {
+              mediaType: mediaTypeFromMime(inferMediaContentType(pending)),
+              contentType: inferMediaContentType(pending),
+              sizeBytes: pending.size,
+            });
+          }
+        }}
         onPublish={() => { void handlePublish(); }}
       />
     </Box>

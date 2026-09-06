@@ -4,22 +4,76 @@ import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import { ACCEPT_MEDIA } from '../../utils/mediaFile';
+import {
+  createMediaAttempt,
+  logMediaEvent,
+  type MediaAttempt,
+  type MediaCaptureSource,
+} from '../../utils/mediaTelemetry';
 
 type Props = Readonly<{
   disabled?: boolean;
-  onFile: (file: File) => void;
+  onFile: (file: File, attempt: MediaAttempt) => void;
 }>;
 
-function pickFile(input: HTMLInputElement | null, onFile: (file: File) => void) {
+type AttemptState = {
+  attempt: MediaAttempt;
+  startedAt: number;
+  cleanupReturn?: () => void;
+};
+
+function pickFile(input: HTMLInputElement | null, onFile: Props['onFile'], state: AttemptState) {
   const file = input?.files?.[0];
   if (input) input.value = '';
-  if (file) onFile(file);
+  state.cleanupReturn?.();
+  logMediaEvent('guest_media_native_returned', state.attempt, {
+    outcome: file ? 'selected' : 'cancelled_or_unknown',
+    hasFile: !!file,
+    elapsedMs: Math.max(0, Math.round(performance.now() - state.startedAt)),
+    visibilityState: document.visibilityState,
+  });
+  if (file) onFile(file, state.attempt);
 }
 
 export default function MediaCaptureBar({ disabled, onFile }: Props) {
   const photoRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
+  const attemptsRef = useRef(new WeakMap<HTMLInputElement, AttemptState>());
+
+  function openPicker(input: HTMLInputElement | null, source: MediaCaptureSource) {
+    if (!input) return;
+    const attempt = createMediaAttempt(source);
+    const startedAt = performance.now();
+    logMediaEvent('guest_media_capture_intent', attempt, {
+      captureMode: source === 'gallery' ? 'file_picker' : 'native_camera',
+      disabled: !!disabled,
+      online: navigator.onLine,
+    });
+    const state: AttemptState = { attempt, startedAt };
+    attemptsRef.current.set(input, state);
+    if (source !== 'gallery') {
+      let returned = false;
+      const logReturn = () => {
+        if (returned || performance.now() - startedAt < 300 || document.visibilityState !== 'visible') return;
+        returned = true;
+        logMediaEvent('guest_media_native_returned', attempt, {
+          outcome: 'returned_to_browser',
+          hasFile: false,
+          elapsedMs: Math.max(0, Math.round(performance.now() - startedAt)),
+          visibilityState: document.visibilityState,
+        });
+        state.cleanupReturn?.();
+      };
+      state.cleanupReturn = () => {
+        window.removeEventListener('focus', logReturn);
+        document.removeEventListener('visibilitychange', logReturn);
+      };
+      window.addEventListener('focus', logReturn);
+      document.addEventListener('visibilitychange', logReturn);
+    }
+    input.click();
+  }
 
   return (
     <Box>
@@ -29,7 +83,10 @@ export default function MediaCaptureBar({ disabled, onFile }: Props) {
         accept="image/*"
         capture="environment"
         hidden
-        onChange={(event) => pickFile(event.currentTarget, onFile)}
+        onChange={(event) => {
+          const state = attemptsRef.current.get(event.currentTarget);
+          if (state) pickFile(event.currentTarget, onFile, state);
+        }}
       />
       <input
         ref={videoRef}
@@ -37,14 +94,20 @@ export default function MediaCaptureBar({ disabled, onFile }: Props) {
         accept="video/*"
         capture="environment"
         hidden
-        onChange={(event) => pickFile(event.currentTarget, onFile)}
+        onChange={(event) => {
+          const state = attemptsRef.current.get(event.currentTarget);
+          if (state) pickFile(event.currentTarget, onFile, state);
+        }}
       />
       <input
         ref={galleryRef}
         type="file"
         accept={ACCEPT_MEDIA}
         hidden
-        onChange={(event) => pickFile(event.currentTarget, onFile)}
+        onChange={(event) => {
+          const state = attemptsRef.current.get(event.currentTarget);
+          if (state) pickFile(event.currentTarget, onFile, state);
+        }}
       />
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
@@ -53,7 +116,7 @@ export default function MediaCaptureBar({ disabled, onFile }: Props) {
           fullWidth
           disabled={disabled}
           startIcon={<PhotoCameraIcon />}
-          onClick={() => photoRef.current?.click()}
+          onClick={() => openPicker(photoRef.current, 'photo')}
         >
           Fotografar
         </Button>
@@ -64,7 +127,7 @@ export default function MediaCaptureBar({ disabled, onFile }: Props) {
             fullWidth
             disabled={disabled}
             startIcon={<VideocamIcon />}
-            onClick={() => videoRef.current?.click()}
+            onClick={() => openPicker(videoRef.current, 'video')}
           >
             Gravar vídeo
           </Button>
@@ -77,7 +140,7 @@ export default function MediaCaptureBar({ disabled, onFile }: Props) {
           fullWidth
           disabled={disabled}
           startIcon={<PhotoLibraryIcon />}
-          onClick={() => galleryRef.current?.click()}
+          onClick={() => openPicker(galleryRef.current, 'gallery')}
           sx={{ alignSelf: { sm: 'flex-start' } }}
         >
           Galeria

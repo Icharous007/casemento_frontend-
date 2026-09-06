@@ -13,18 +13,18 @@ export interface MediaComment {
 export interface MediaItem {
   id: string;
   mediaType: 'PHOTO' | 'VIDEO';
+  status: string;
   url: string;
-  thumbnailUrl?: string | null;
+  thumbnailUrl: string | null;
+  displayUrl: string | null;
+  contentType: string;
+  fileSizeBytes: number;
   likeCount: number;
   likedByMe: boolean;
   commentCount: number;
   uploadedAt: string;
-  status?: string;
-  fileSizeBytes?: number;
-  contentType?: string;
-  guestId?: string;
-  guestName?: string;
-  displayName?: string;
+  guestId: string;
+  guestName: string;
 }
 
 export interface MediaListResponse {
@@ -73,9 +73,12 @@ export async function listMedia(params?: {
 export async function uploadMedia(file: File): Promise<MediaItem> {
   const form = new FormData();
   form.append('file', file);
+  // guestClient define Content-Type: application/json por padrão; é preciso
+  // limpá-lo aqui para que o navegador defina "multipart/form-data; boundary=..."
+  // automaticamente. Um valor manual (com ou sem boundary) quebra o parser do backend.
   const { data } = await guestClient.post<MediaItem>('/media/upload', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 120_000,
+    headers: { 'Content-Type': undefined },
+    timeout: 600_000,
   });
   return data;
 }

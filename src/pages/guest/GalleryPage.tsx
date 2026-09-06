@@ -48,7 +48,7 @@ function formatUploadedAt(iso: string) {
 }
 
 function mediaSrc(item: MediaItem) {
-  return item.thumbnailUrl || item.url;
+  return item.thumbnailUrl || item.displayUrl || item.url;
 }
 
 function guestIdFromUrl(url: string | undefined) {
@@ -64,7 +64,7 @@ function guestIdFromUrl(url: string | undefined) {
 }
 
 function mediaGuestName(item: MediaItem, me?: { guestId?: string; displayName?: string } | null) {
-  const named = item.guestName?.trim() || item.displayName?.trim();
+  const named = item.guestName?.trim();
   if (named) return named;
   const mediaGuestId = item.guestId || guestIdFromUrl(item.url) || guestIdFromUrl(item.thumbnailUrl ?? undefined);
   if (me?.displayName && mediaGuestId && me.guestId && mediaGuestId === me.guestId) {
@@ -441,11 +441,9 @@ export default function GalleryPage() {
               />
             ) : (
               <Box
-                component="video"
-                src={item.url}
-                muted
-                playsInline
-                preload="metadata"
+                component="img"
+                src={mediaSrc(item)}
+                alt="pré-visualização do vídeo"
                 sx={{
                   width: '100%',
                   height: '100%',
@@ -543,7 +541,7 @@ export default function GalleryPage() {
                   {shouldMountMedia && item.mediaType === 'PHOTO' && (
                     <Box
                       component="img"
-                      src={item.url}
+                      src={item.displayUrl || item.url}
                       alt={authorName}
                       draggable={false}
                       className="gallery-reel-media"
@@ -557,6 +555,7 @@ export default function GalleryPage() {
                         if (node && !active) node.pause();
                       }}
                       src={item.url}
+                      poster={item.thumbnailUrl || item.displayUrl || undefined}
                       playsInline
                       loop
                       muted={muted}
