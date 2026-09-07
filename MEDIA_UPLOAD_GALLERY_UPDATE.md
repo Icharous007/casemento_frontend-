@@ -1,7 +1,29 @@
-# Media Upload & Gallery Update — Correção de Upload + Galeria Thumb-First
+# Media Upload & Gallery Update — Upload Direto R2 + Galeria Thumb-First
 
-**Data:** 2026-09-05
+**Data:** 2026-09-06
 **Impacto:** Upload de fotos/vídeos do convidado (`MediaComposer`/`MediaCaptureBar`), tipos de `MediaItem`, grid e fullscreen da galeria (`GalleryPage`)
+
+---
+
+## Estado atual: upload direto e privado
+
+O fluxo multipart `POST /api/v1/media/upload` foi substituído no frontend pelo fluxo abaixo. O endpoint antigo fica apenas como compatibilidade temporária e não deve ser usado por novas telas.
+
+1. `POST /api/v1/media/upload-intents`, com `Idempotency-Key`, nome, MIME e tamanho do arquivo.
+2. O backend retorna uma URL `PUT` temporária do R2.
+3. O navegador envia o arquivo diretamente ao R2 e mostra o percentual de progresso.
+4. `POST /api/v1/media/upload-intents/{mediaId}/complete` verifica tamanho, MIME e assinatura do arquivo antes de publicar a mídia.
+
+O R2 deve estar privado. A URL devolvida na galeria é assinada pelo backend e entregue pelo Worker em `deploy/cloudflare/media-worker/`; consulte `R2_SETUP.md` no backend antes de publicar.
+
+### Formatos atuais
+
+- Fotos: JPEG, PNG, HEIC e HEIF, até 10 MB.
+- Vídeos: somente MP4, até 200 MB e 60 segundos.
+
+MOV e WebM deixaram de ser aceitos porque não há mais transcodificação na VPS de 2 vCPU/2 GB. Um MP4 com codec incompatível ainda pode falhar na reprodução: o formato recomendado é H.264 para vídeo e AAC para áudio.
+
+Variantes de foto e pôsteres de vídeo são gerados por uma fila persistente e serial depois da publicação. Enquanto o pôster de um vídeo está pendente, a grade mostra o cartão com ícone de reprodução sem baixar o MP4 completo.
 
 ---
 

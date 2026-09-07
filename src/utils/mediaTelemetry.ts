@@ -1,6 +1,9 @@
 export type MediaCaptureSource = 'photo' | 'video' | 'gallery';
 export type MediaType = 'photo' | 'video' | 'unknown';
 
+import type { ObservedMediaError, ErrorCategory } from '../types/mediaDiagnostics';
+import { MediaErrorQueue } from './mediaDiagnosticsUtils';
+
 export type MediaAttempt = Readonly<{
   flowId: string;
   attemptId: string;
@@ -74,4 +77,75 @@ export function classifyMediaError(error: unknown) {
     axiosCode: value?.code,
     retryable: timeout || network || (typeof status === 'number' && status >= 500),
   };
+}
+
+/**
+ * Record a media error to local queue for async reporting.
+ * Captures sanitized error information for admin diagnostics.
+ */
+export function recordMediaError(
+  attempt: MediaAttempt,
+  eventType: string,
+  category: ErrorCategory,
+  details: {
+    mediaType?: 'PHOTO' | 'VIDEO';
+    contentType?: string;
+    fileSizeBytes?: number;
+    errorMessage?: string;
+    httpStatus?: number;
+    axiosCode?: string;
+    durationMs?: number;
+    retryable: boolean;
+  },
+): void {
+  const observedError: ObservedMediaError = {
+    flowId: attempt.flowId,
+    attemptId: attempt.attemptId,
+    eventType,
+    category,
+    stage: mapEventTypeToStage(eventType) as any,
+    source: 'CLIENT',
+    mediaType: details.mediaType,
+    contentType: details.contentType,
+    fileSizeBytes: details.fileSizeBytes,
+    errorMessage: details.errorMessage,
+    httpStatus: details.httpStatus,
+    axiosCode: details.axiosCode,
+    browserDescriptor: navigator.userAgent,
+    clientRoute: window.location.pathname,
+    durationMs: details.durationMs,
+    timestamp: Date.now(),
+    retryable: details.retryable,
+  };
+
+  MediaErrorQueue.add(observedError);
+
+  if (telemetryEnabled) {
+    console.warn('[media-error]', {
+      eventType,
+      category,
+      flowId: attempt.flowId,
+      attemptId: attempt.attemptId,
+      timestamp: new Date().toISOString(),
+      retryable: details.retryable,
+      httpStatus: details.httpStatus,
+      message: details.errorMessage,
+    });
+  }
+}
+
+/**
+ * Map event type to processing stage.
+ */
+function mapEventTypeToStage(eventType: string): string {
+  const lowerType = eventType.toLowerCase();
+  if (lowerType.includes('validation')) return 'validation';
+  if (lowerType.includes('upload')) return 'upload';
+  if (lowerType.includes('cors')) return 'cors';
+  if (lowerType.includes('intent')) return 'intent';
+  if (lowerType.includes('complet')) return 'complete';
+  if (lowerType.includes('preview') || lowerType.includes('render') || lowerType.includes('gallery')) {
+    return 'gallery';
+  }
+  return 'unknown';
 }

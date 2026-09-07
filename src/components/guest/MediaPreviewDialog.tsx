@@ -7,12 +7,15 @@ import { formatFileSize, isPhotoFile, isVideoFile } from '../../utils/mediaFile'
 type Props = Readonly<{
   file: File | null;
   uploading: boolean;
+  uploadProgress: number | null;
   onDiscard: () => void;
   onPreviewRenderFailed: () => void;
   onPublish: () => void;
 }>;
 
-export default function MediaPreviewDialog({ file, uploading, onDiscard, onPreviewRenderFailed, onPublish }: Props) {
+export default function MediaPreviewDialog({
+  file, uploading, uploadProgress, onDiscard, onPreviewRenderFailed, onPublish,
+}: Props) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
 
@@ -82,7 +85,9 @@ export default function MediaPreviewDialog({ file, uploading, onDiscard, onPrevi
       <DialogActions>
         <Button onClick={onDiscard} disabled={uploading}>Descartar</Button>
         <Button variant="contained" onClick={onPublish} disabled={uploading || !file}>
-          {uploading ? <CircularProgress size={18} color="inherit" /> : 'Enviar'}
+          {uploading
+            ? <>{uploadProgress == null ? <CircularProgress size={18} color="inherit" /> : `Enviando ${uploadProgress}%`}</>
+            : 'Enviar'}
         </Button>
       </DialogActions>
     </Dialog>

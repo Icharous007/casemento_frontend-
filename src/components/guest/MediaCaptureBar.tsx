@@ -3,7 +3,7 @@ import { Box, Button, Stack, Typography } from '@mui/material';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
-import { ACCEPT_MEDIA } from '../../utils/mediaFile';
+import { ACCEPT_MEDIA, ACCEPT_VIDEO } from '../../utils/mediaFile';
 import {
   createMediaAttempt,
   logMediaEvent,
@@ -91,7 +91,7 @@ export default function MediaCaptureBar({ disabled, onFile }: Props) {
       <input
         ref={videoRef}
         type="file"
-        accept="video/*"
+        accept={ACCEPT_VIDEO}
         capture="environment"
         hidden
         onChange={(event) => {
@@ -132,7 +132,7 @@ export default function MediaCaptureBar({ disabled, onFile }: Props) {
             Gravar vídeo
           </Button>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 0.5 }}>
-            Até 200 MB / 60s
+            MP4 · até 200 MB / 60s
           </Typography>
         </Box>
         <Button

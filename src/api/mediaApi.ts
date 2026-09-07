@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { guestClient, adminClient } from './client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -32,11 +33,20 @@ export interface MediaListResponse {
   total: number;
   page: number;
   pageSize: number;
+  hasMore: boolean;
+  galleryHidden: boolean;
 }
 
 export interface LikeResponse {
   mediaId: string;
   liked: boolean;
+}
+
+interface MediaUploadIntentResponse {
+  mediaId: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED';
+  uploadUrl: string | null;
+  uploadExpiresAt: string;
 }
 
 export interface AddCommentResponse {
@@ -70,16 +80,47 @@ export async function listMedia(params?: {
   return data;
 }
 
-export async function uploadMedia(file: File): Promise<MediaItem> {
-  const form = new FormData();
-  form.append('file', file);
-  // guestClient define Content-Type: application/json por padrão; é preciso
-  // limpá-lo aqui para que o navegador defina "multipart/form-data; boundary=..."
-  // automaticamente. Um valor manual (com ou sem boundary) quebra o parser do backend.
-  const { data } = await guestClient.post<MediaItem>('/media/upload', form, {
-    headers: { 'Content-Type': undefined },
-    timeout: 600_000,
+export async function uploadMedia(
+  file: File,
+  idempotencyKey: string,
+  onProgress?: (percentage: number) => void,
+): Promise<MediaItem> {
+  const contentType = file.type.toLowerCase().trim();
+  if (import.meta.env.DEV && import.meta.env.VITE_DIRECT_R2_UPLOAD !== 'true') {
+    const form = new FormData();
+    form.append('file', file);
+    const { data } = await guestClient.post<MediaItem>('/media/upload', form, {
+      headers: { 'Content-Type': undefined },
+      timeout: 600_000,
+      onUploadProgress: (event) => {
+        if (event.total) onProgress?.(Math.round((event.loaded / event.total) * 100));
+      },
+    });
+    return data;
+  }
+
+  const { data: intent } = await guestClient.post<MediaUploadIntentResponse>('/media/upload-intents', {
+    filename: file.name,
+    contentType,
+    fileSizeBytes: file.size,
+  }, {
+    headers: { 'Idempotency-Key': idempotencyKey },
   });
+
+  if (intent.status !== 'COMPLETED') {
+    if (!intent.uploadUrl) {
+      throw new Error('Não foi possível preparar o envio do arquivo.');
+    }
+    await axios.put(intent.uploadUrl, file, {
+      headers: { 'Content-Type': contentType },
+      timeout: 600_000,
+      onUploadProgress: (event) => {
+        if (event.total) onProgress?.(Math.round((event.loaded / event.total) * 100));
+      },
+    });
+  }
+
+  const { data } = await guestClient.post<MediaItem>(`/media/upload-intents/${intent.mediaId}/complete`);
   return data;
 }
 

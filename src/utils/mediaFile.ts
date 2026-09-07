@@ -1,4 +1,4 @@
-/** Espelha MediaService no backend: JPEG/PNG/HEIC + MP4/MOV/WebM, 10 MB / 200 MB. */
+/** Espelha MediaService no backend: JPEG/PNG/HEIC + MP4, 10 MB / 200 MB. */
 
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 export const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
@@ -13,14 +13,10 @@ export const ALLOWED_PHOTO_TYPES = new Set([
   'image/heif',
 ]);
 
-export const ALLOWED_VIDEO_TYPES = new Set([
-  'video/mp4',
-  'video/quicktime',
-  'video/webm',
-]);
+export const ALLOWED_VIDEO_TYPES = new Set(['video/mp4']);
 
 export const ACCEPT_PHOTO = 'image/jpeg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic,.heif';
-export const ACCEPT_VIDEO = 'video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm';
+export const ACCEPT_VIDEO = 'video/mp4,.mp4';
 export const ACCEPT_MEDIA = `${ACCEPT_PHOTO},${ACCEPT_VIDEO}`;
 
 const EXT_TO_MIME: Record<string, string> = {
@@ -30,12 +26,10 @@ const EXT_TO_MIME: Record<string, string> = {
   heic: 'image/heic',
   heif: 'image/heif',
   mp4: 'video/mp4',
-  mov: 'video/quicktime',
-  webm: 'video/webm',
 };
 
 const UNSUPPORTED_MESSAGE =
-  'Formato não suportado. Fotos: JPEG, PNG, HEIC. Vídeos: MP4, MOV, WebM.';
+  'Formato não suportado. Fotos: JPEG, PNG, HEIC. Vídeos: MP4.';
 
 export function inferMediaContentType(file: File): string {
   const type = file.type?.toLowerCase().trim() ?? '';
@@ -54,7 +48,7 @@ export function isPhotoFile(file: File): boolean {
 export function isVideoFile(file: File): boolean {
   const mime = inferMediaContentType(file);
   if (ALLOWED_VIDEO_TYPES.has(mime)) return true;
-  return /\.(mp4|mov|webm)$/i.test(file.name);
+  return /\.mp4$/i.test(file.name);
 }
 
 export function prepareMediaFile(file: File): File {
@@ -121,12 +115,25 @@ function readVideoDuration(file: File): Promise<number> {
     const url = URL.createObjectURL(file);
     const video = document.createElement('video');
     video.preload = 'metadata';
-    video.onloadedmetadata = () => {
+    const cleanup = () => {
+      clearTimeout(timeoutId);
+      video.onloadedmetadata = null;
+      video.onerror = null;
+      video.removeAttribute('src');
+      video.load();
       URL.revokeObjectURL(url);
-      resolve(video.duration);
+    };
+    const timeoutId = window.setTimeout(() => {
+      cleanup();
+      reject(new Error('video_metadata_timeout'));
+    }, 3000);
+    video.onloadedmetadata = () => {
+      const duration = video.duration;
+      cleanup();
+      resolve(duration);
     };
     video.onerror = () => {
-      URL.revokeObjectURL(url);
+      cleanup();
       reject(new Error('video_metadata_failed'));
     };
     video.src = url;

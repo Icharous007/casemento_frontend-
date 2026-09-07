@@ -48,6 +48,9 @@ function formatUploadedAt(iso: string) {
 }
 
 function mediaSrc(item: MediaItem) {
+  if (item.mediaType === 'VIDEO') {
+    return item.thumbnailUrl || item.displayUrl || undefined;
+  }
   return item.thumbnailUrl || item.displayUrl || item.url;
 }
 
@@ -105,7 +108,7 @@ export default function GalleryPage() {
   const singleTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [sort, setSort] = useState<'recent' | 'popular'>('recent');
-  const [page] = useState(1);
+  const [page, setPage] = useState(1);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [muted, setMuted] = useState(true);
   const [pausedMediaId, setPausedMediaId] = useState<string | null>(null);
@@ -115,7 +118,7 @@ export default function GalleryPage() {
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['guest', 'media', sort, page],
-    queryFn: () => listMedia({ page, pageSize: 40, sort }),
+    queryFn: () => listMedia({ page, pageSize: 24, sort }),
   });
 
   const items = useMemo(() => data?.items ?? [], [data?.items]);
@@ -373,7 +376,10 @@ export default function GalleryPage() {
         <Button
           variant={sort === 'recent' ? 'contained' : 'outlined'}
           size="small"
-          onClick={() => setSort('recent')}
+          onClick={() => {
+            setSort('recent');
+            setPage(1);
+          }}
           sx={{
             borderRadius: 999,
             px: 2.5,
@@ -385,7 +391,10 @@ export default function GalleryPage() {
         <Button
           variant={sort === 'popular' ? 'contained' : 'outlined'}
           size="small"
-          onClick={() => setSort('popular')}
+          onClick={() => {
+            setSort('popular');
+            setPage(1);
+          }}
           sx={{
             borderRadius: 999,
             px: 2.5,
@@ -431,6 +440,8 @@ export default function GalleryPage() {
                 component="img"
                 src={mediaSrc(item)}
                 alt="foto"
+                loading="lazy"
+                decoding="async"
                 sx={{
                   width: '100%',
                   height: '100%',
@@ -444,6 +455,8 @@ export default function GalleryPage() {
                 component="img"
                 src={mediaSrc(item)}
                 alt="pré-visualização do vídeo"
+                loading="lazy"
+                decoding="async"
                 sx={{
                   width: '100%',
                   height: '100%',
@@ -485,6 +498,19 @@ export default function GalleryPage() {
           </Box>
         ))}
       </Box>
+
+      <Stack direction="row" spacing={1.5} sx={{ mt: 2, justifyContent: 'center' }}>
+        {page > 1 && (
+          <Button variant="outlined" size="small" onClick={() => setPage((current) => current - 1)}>
+            Anterior
+          </Button>
+        )}
+        {data.hasMore && (
+          <Button variant="contained" size="small" onClick={() => setPage((current) => current + 1)}>
+            Ver mais
+          </Button>
+        )}
+      </Stack>
 
       {viewerIndex != null && selectedMedia && (
         <Box
@@ -560,7 +586,7 @@ export default function GalleryPage() {
                       loop
                       muted={muted}
                       autoPlay={active && !paused}
-                      preload="auto"
+                      preload={active ? 'auto' : 'none'}
                       disablePictureInPicture
                       className="gallery-reel-media is-video"
                       onPlay={() => {

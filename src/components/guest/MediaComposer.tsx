@@ -28,6 +28,7 @@ export default function MediaComposer() {
   const [pending, setPending] = useState<File | null>(null);
   const [pendingAttempt, setPendingAttempt] = useState<MediaAttempt | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   async function handleFile(file: File, attempt: MediaAttempt) {
     setError('');
@@ -88,6 +89,7 @@ export default function MediaComposer() {
     const contentType = inferMediaContentType(pending);
     const mediaType = mediaTypeFromMime(contentType);
     setUploading(true);
+    setUploadProgress(0);
     setError('');
     logMediaEvent('guest_media_upload_started', pendingAttempt, {
       mediaType,
@@ -95,7 +97,7 @@ export default function MediaComposer() {
       sizeBytes: pending.size,
     });
     try {
-      await uploadMedia(pending);
+      await uploadMedia(pending, pendingAttempt.attemptId, setUploadProgress);
       qc.invalidateQueries({ queryKey: ['guest', 'media'] });
       logMediaEvent('guest_media_upload_succeeded', pendingAttempt, {
         mediaType,
@@ -116,6 +118,7 @@ export default function MediaComposer() {
       });
     } finally {
       setUploading(false);
+      setUploadProgress(null);
     }
   }
 
@@ -126,6 +129,7 @@ export default function MediaComposer() {
       <MediaPreviewDialog
         file={pending}
         uploading={uploading}
+        uploadProgress={uploadProgress}
         onDiscard={() => {
           if (pendingAttempt && pending) {
             logMediaEvent('guest_media_discarded', pendingAttempt, {
