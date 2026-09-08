@@ -80,14 +80,21 @@ export default function WallPage() {
 
   async function startRecording() {
     try {
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+        throw new Error('UNAVAILABLE');
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       chunksRef.current = [];
       setAudioDuration(0);
 
       recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
         setAudioBlob(blob);
         stream.getTracks().forEach((t) => t.stop());
       };
@@ -96,8 +103,38 @@ export default function WallPage() {
       mediaRecorderRef.current = recorder;
       setRecording(true);
       timerRef.current = setInterval(() => setAudioDuration((d) => d + 1), 1000);
-    } catch {
-      setPostError('Não foi possível acessar o microfone.');
+    } catch (err) {
+      const errorName = err instanceof DOMException ? err.name : '';
+      const message = errorName === 'NotAllowedError' || errorName === 'SecurityError'
+        ? 'Permissão do microfone negada. Autorize o microfone nas configurações do navegador e tente novamente.'
+        : errorName === 'NotFoundError'
+          ? 'Nenhum microfone foi encontrado neste dispositivo.'
+          : errorName === 'NotReadableError'
+            ? 'O microfone está sendo usado por outro aplicativo.'
+            : 'A gravação de áudio não está disponível neste navegador ou dispositivo.';
+      setPostError(message);
+    }
+  }
+
+  async function openAudioDialog() {
+    setPostError('');
+    setAudioDialogOpen(true);
+
+    try {
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+        throw new Error('UNAVAILABLE');
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+    } catch (err) {
+      const errorName = err instanceof DOMException ? err.name : '';
+      if (errorName === 'NotAllowedError' || errorName === 'SecurityError') {
+        setPostError('Permissão do microfone negada. Clique no cadeado ao lado do endereço, permita o microfone e recarregue a página.');
+      } else if (errorName === 'NotFoundError') {
+        setPostError('Nenhum microfone foi encontrado neste dispositivo.');
+      } else {
+        setPostError('A gravação de áudio não está disponível neste navegador ou dispositivo.');
+      }
     }
   }
 
@@ -162,7 +199,7 @@ export default function WallPage() {
         Mural de Mensagens 💌
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 3 }}>
-        Deixe uma mensagem especial para os noivos!
+        Deixe uma mensagem especial para Gustavo e Maria Luiza!
       </Typography>
 
       <Button
@@ -198,7 +235,7 @@ export default function WallPage() {
                 variant="outlined"
                 size="small"
                 startIcon={<MicIcon />}
-                onClick={() => setAudioDialogOpen(true)}
+                onClick={openAudioDialog}
               >
                 Áudio
               </Button>

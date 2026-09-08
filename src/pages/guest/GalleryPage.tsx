@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type SyntheticEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, IconButton, Button, TextField, CircularProgress, Alert,
@@ -52,6 +52,13 @@ function mediaSrc(item: MediaItem) {
     return item.thumbnailUrl || item.displayUrl || undefined;
   }
   return item.thumbnailUrl || item.displayUrl || item.url;
+}
+
+function fallbackImage(event: SyntheticEvent<HTMLImageElement>, item: MediaItem) {
+  const fallback = item.displayUrl || item.url;
+  if (fallback && event.currentTarget.src !== fallback) {
+    event.currentTarget.src = fallback;
+  }
 }
 
 function guestIdFromUrl(url: string | undefined) {
@@ -439,6 +446,7 @@ export default function GalleryPage() {
               <Box
                 component="img"
                 src={mediaSrc(item)}
+                onError={(event) => fallbackImage(event, item)}
                 alt="foto"
                 loading="lazy"
                 decoding="async"
@@ -454,6 +462,7 @@ export default function GalleryPage() {
               <Box
                 component="img"
                 src={mediaSrc(item)}
+                onError={(event) => fallbackImage(event, item)}
                 alt="pré-visualização do vídeo"
                 loading="lazy"
                 decoding="async"

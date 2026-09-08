@@ -58,7 +58,7 @@ O frontend deve ler `event` (slug) da query string.
   "accessToken": "raw-token-64-chars",
   "event": {
     "title": "Casamento",
-    "coupleNames": "Noivo & Noiva",
+    "coupleNames": "Gustavo & Maria Luiza",
     "eventStartAt": "2027-01-30T19:00:00-03:00",
     "rsvpDeadlineAt": "2027-01-15T23:59:59-03:00",
     "venueName": "Local do Evento",
@@ -118,7 +118,7 @@ Sem mudanças na estrutura da resposta (continua retornando `phone`, não `email
   "rsvpStatus": "PENDING",
   "event": {
     "title": "Casamento",
-    "coupleNames": "Noivo & Noiva",
+    "coupleNames": "Gustavo & Maria Luiza",
     "eventStartAt": "2027-01-30T19:00:00-03:00",
     "rsvpDeadlineAt": "2027-01-15T23:59:59-03:00",
     "venueName": "Local do Evento",

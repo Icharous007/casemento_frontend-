@@ -11,7 +11,7 @@ import GuestLayout from './GuestLayout';
 const ERROR_MESSAGES: Record<string, string> = {
   TERMS_NOT_ACCEPTED: 'Você precisa aceitar os termos para continuar.',
   PHONE_INVALID: 'Número de telefone inválido. Verifique e tente novamente.',
-  GUEST_BLOCKED: 'Acesso indisponível. Fale com os noivos.',
+  GUEST_BLOCKED: 'Acesso indisponível. Fale com Gustavo ou Maria Luiza.',
   NOT_FOUND: 'Evento não encontrado. Verifique o link ou QR code.',
 };
 
