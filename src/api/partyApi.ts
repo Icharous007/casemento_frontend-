@@ -1,4 +1,5 @@
 import { guestClient } from './client';
+import type { RsvpResponse } from './rsvpApi';
 
 export interface AddPartyMemberRequest {
   name: string;
@@ -14,6 +15,10 @@ export interface PartyMemberResponse {
   guestType: string;
   age?: number;
   rsvpStatus: 'PENDING' | 'ATTENDING' | 'DECLINED';
+  dietaryRestrictions?: string | null;
+  allergies?: string | null;
+  additionalInfo?: string | null;
+  selfConfirmationSuggested: boolean;
   isSelf: boolean;
   managedByMe: boolean;
   managedByName?: string;
@@ -46,11 +51,17 @@ export async function addPartyMember(
  */
 export async function confirmPartyMemberRsvp(
   guestId: string,
-  attendanceStatus: 'ATTENDING' | 'DECLINED'
-): Promise<{ guestId: string; status: string }> {
-  const { data } = await guestClient.put<{ guestId: string; status: string }>(
+  body: {
+    attendanceStatus: 'ATTENDING' | 'DECLINED';
+    dietaryRestrictions?: string | null;
+    allergies?: string | null;
+    additionalInfo?: string | null;
+  } | 'ATTENDING' | 'DECLINED'
+): Promise<RsvpResponse> {
+  const payload = typeof body === 'string' ? { attendanceStatus: body } : body;
+  const { data } = await guestClient.put<RsvpResponse>(
     `/me/party/${guestId}/rsvp`,
-    { attendanceStatus }
+    payload
   );
   return data;
 }

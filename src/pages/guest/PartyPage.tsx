@@ -22,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ChildCareIcon from '@mui/icons-material/ChildCare';
 import PersonIcon from '@mui/icons-material/Person';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   listPartyMembers,
@@ -52,8 +53,15 @@ function getErrorMessage(code: string): string {
 }
 
 type DrawerType = 'add-child' | 'add-adult' | null;
+type RsvpDraft = {
+  attendanceStatus: 'ATTENDING' | 'DECLINED' | null;
+  dietaryRestrictions: string;
+  allergies: string;
+  additionalInfo: string;
+};
 
 export default function PartyPage() {
+  const navigate = useNavigate();
   const qc = useQueryClient();
 
   // Data fetching
@@ -76,8 +84,8 @@ export default function PartyPage() {
 
   // Confirm RSVP mutation
   const confirmRsvpMutation = useMutation({
-    mutationFn: ({ guestId, status }: { guestId: string; status: 'ATTENDING' | 'DECLINED' }) =>
-      confirmPartyMemberRsvp(guestId, status),
+    mutationFn: ({ guestId, body }: { guestId: string; body: { attendanceStatus: 'ATTENDING' | 'DECLINED'; dietaryRestrictions?: string; allergies?: string; additionalInfo?: string } }) =>
+      confirmPartyMemberRsvp(guestId, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['guest', 'party'] });
     },
@@ -103,6 +111,7 @@ export default function PartyPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [rsvpDrafts, setRsvpDrafts] = useState<Record<string, RsvpDraft>>({});
 
   const resetFormFields = () => {
     setChildName('');
@@ -140,8 +149,31 @@ export default function PartyPage() {
     addMutation.mutate(request);
   }
 
-  function handleConfirmRsvp(memberId: string, status: 'ATTENDING' | 'DECLINED') {
-    confirmRsvpMutation.mutate({ guestId: memberId, status });
+  function draftFor(member: PartyMemberResponse): RsvpDraft {
+    return rsvpDrafts[member.guestId] ?? {
+      attendanceStatus: member.rsvpStatus === 'PENDING' ? null : member.rsvpStatus,
+      dietaryRestrictions: member.dietaryRestrictions ?? '',
+      allergies: member.allergies ?? '',
+      additionalInfo: member.additionalInfo ?? '',
+    };
+  }
+
+  function updateDraft(member: PartyMemberResponse, patch: Partial<RsvpDraft>) {
+    setRsvpDrafts((current) => ({ ...current, [member.guestId]: { ...draftFor(member), ...patch } }));
+  }
+
+  function handleConfirmRsvp(member: PartyMemberResponse) {
+    const draft = draftFor(member);
+    if (!draft.attendanceStatus) return;
+    confirmRsvpMutation.mutate({
+      guestId: member.guestId,
+      body: {
+        attendanceStatus: draft.attendanceStatus,
+        dietaryRestrictions: draft.attendanceStatus === 'ATTENDING' ? draft.dietaryRestrictions || undefined : undefined,
+        allergies: draft.attendanceStatus === 'ATTENDING' ? draft.allergies || undefined : undefined,
+        additionalInfo: draft.attendanceStatus === 'ATTENDING' ? draft.additionalInfo || undefined : undefined,
+      },
+    });
   }
 
   function handleRemoveClick(memberId: string) {
@@ -182,6 +214,10 @@ export default function PartyPage() {
         </Alert>
       )}
 
+      <Button variant="text" onClick={() => navigate('/home')} sx={{ mb: 2 }}>
+        Voltar para Home
+      </Button>
+
       {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
           <CircularProgress />
@@ -207,7 +243,9 @@ export default function PartyPage() {
                 <Divider sx={{ mb: 3 }} />
                 <MemberCard
                   member={selfMember}
-                  onConfirmRsvp={handleConfirmRsvp}
+                  draft={draftFor(selfMember)}
+                  onDraftChange={(patch) => updateDraft(selfMember, patch)}
+                  onConfirmRsvp={() => handleConfirmRsvp(selfMember)}
                   onRemove={() => {}} // Can't remove self
                   disableRemove
                   isLoading={confirmRsvpMutation.isPending}
@@ -238,7 +276,9 @@ export default function PartyPage() {
                     <div key={member.guestId}>
                       <MemberCard
                         member={member}
-                        onConfirmRsvp={handleConfirmRsvp}
+                        draft={draftFor(member)}
+                        onDraftChange={(patch) => updateDraft(member, patch)}
+                        onConfirmRsvp={() => handleConfirmRsvp(member)}
                         onRemove={() => handleRemoveClick(member.guestId)}
                         isLoading={confirmRsvpMutation.isPending}
                       />
@@ -438,7 +478,9 @@ export default function PartyPage() {
 
 interface MemberCardProps {
   member: PartyMemberResponse;
-  onConfirmRsvp: (guestId: string, status: 'ATTENDING' | 'DECLINED') => void;
+  draft: RsvpDraft;
+  onDraftChange: (patch: Partial<RsvpDraft>) => void;
+  onConfirmRsvp: () => void;
   onRemove?: (guestId: string) => void;
   disableRemove?: boolean;
   isLoading?: boolean;
@@ -446,6 +488,8 @@ interface MemberCardProps {
 
 function MemberCard({
   member,
+  draft,
+  onDraftChange,
   onConfirmRsvp,
   onRemove,
   disableRemove = false,
@@ -495,7 +539,10 @@ function MemberCard({
           value={member.rsvpStatus === 'PENDING' ? null : member.rsvpStatus}
           exclusive
           onChange={(_, v) => {
-            if (v) onConfirmRsvp(member.guestId, v);
+            if (v) onDraftChange({
+              attendanceStatus: v,
+              ...(v === 'DECLINED' ? { dietaryRestrictions: '', allergies: '', additionalInfo: '' } : {}),
+            });
           }}
           size="small"
           fullWidth
@@ -509,6 +556,24 @@ function MemberCard({
           </ToggleButton>
         </ToggleButtonGroup>
       </Box>
+
+      {member.selfConfirmationSuggested && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Este jovem possui celular. Se tiver acesso a ele, peça que faça a própria confirmação.
+        </Alert>
+      )}
+
+      {draft.attendanceStatus === 'ATTENDING' && (
+        <Box sx={{ display: 'grid', gap: 1.5, mb: 2 }}>
+          <TextField label="Restrições alimentares" value={draft.dietaryRestrictions} onChange={(event) => onDraftChange({ dietaryRestrictions: event.target.value })} multiline rows={2} size="small" />
+          <TextField label="Alergias" value={draft.allergies} onChange={(event) => onDraftChange({ allergies: event.target.value })} multiline rows={2} size="small" />
+          <TextField label="Informações adicionais" value={draft.additionalInfo} onChange={(event) => onDraftChange({ additionalInfo: event.target.value })} multiline rows={2} size="small" />
+        </Box>
+      )}
+
+      <Button variant="contained" fullWidth onClick={onConfirmRsvp} disabled={!draft.attendanceStatus || isLoading}>
+        Confirmar resposta
+      </Button>
 
       {member.managedByName && !member.isSelf && (
         <Typography variant="caption" color="textSecondary" sx={{ display: 'block' }}>

@@ -15,7 +15,6 @@ import AdminWallPage from './pages/admin/WallPage';
 // Guest pages
 import SaveTheDatePage from './pages/guest/SaveTheDatePage';
 import GuestHomePage from './pages/guest/HomePage';
-import GuestRsvpPage from './pages/guest/RsvpPage';
 import GiftsPage from './pages/guest/GiftsPage';
 import GalleryPage from './pages/guest/GalleryPage';
 import WallPage from './pages/guest/WallPage';
@@ -36,7 +35,7 @@ export default function App() {
           {/* Guest routes */}
           <Route path="/save-the-date" element={<SaveTheDatePage />} />
           <Route path="/home" element={<GuestHomePage />} />
-          <Route path="/rsvp" element={<GuestRsvpPage />} />
+          <Route path="/rsvp" element={<Navigate to="/minha-familia" replace />} />
           <Route path="/minha-familia" element={<PartyPage />} />
           <Route path="/presentes" element={<GiftsPage />} />
           <Route path="/galeria" element={<GalleryPage />} />

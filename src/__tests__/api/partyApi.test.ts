@@ -36,15 +36,15 @@ describe('partyApi', () => {
     it('should add a new party member', async () => {
       const request = {
         name: 'João',
-        phone: null,
-        guestType: 'CHILD',
+        phone: undefined,
+        guestType: 'CHILD' as const,
         age: 7,
       };
       
       const mockResponse = {
         guestId: '3',
         name: 'João',
-        guestType: 'CHILD',
+        guestType: 'CHILD' as const,
         age: 7,
         rsvpStatus: 'PENDING',
       };
@@ -60,9 +60,9 @@ describe('partyApi', () => {
     it('should handle validation errors', async () => {
       const request = {
         name: '',
-        phone: null,
-        guestType: 'CHILD',
-        age: null,
+        phone: undefined,
+        guestType: 'CHILD' as const,
+        age: undefined,
       };
       
       const apiError = {
@@ -81,15 +81,20 @@ describe('partyApi', () => {
   describe('confirmPartyMemberRsvp', () => {
     it('should confirm RSVP status', async () => {
       const guestId = '2';
-      const status = 'ATTENDING';
+      const payload = {
+        attendanceStatus: 'ATTENDING' as const,
+        dietaryRestrictions: 'Vegetariano',
+        allergies: 'Amendoim',
+        additionalInfo: 'Precisa de cadeira infantil',
+      };
       
       vi.mocked(axios.put).mockResolvedValueOnce({ data: { ok: true } });
 
-      await partyApi.confirmPartyMemberRsvp(guestId, status);
+      await partyApi.confirmPartyMemberRsvp(guestId, payload);
 
       expect(axios.put).toHaveBeenCalledWith(
         `/api/v1/me/party/${guestId}/rsvp`,
-        { attendanceStatus: status }
+        payload
       );
     });
   });
