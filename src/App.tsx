@@ -19,6 +19,7 @@ import GuestRsvpPage from './pages/guest/RsvpPage';
 import GiftsPage from './pages/guest/GiftsPage';
 import GalleryPage from './pages/guest/GalleryPage';
 import WallPage from './pages/guest/WallPage';
+import PartyPage from './pages/guest/PartyPage';
 
 function RequireAdminAuth() {
   const { isAuthenticated } = useAdminAuth();
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/save-the-date" element={<SaveTheDatePage />} />
           <Route path="/home" element={<GuestHomePage />} />
           <Route path="/rsvp" element={<GuestRsvpPage />} />
+          <Route path="/minha-familia" element={<PartyPage />} />
           <Route path="/presentes" element={<GiftsPage />} />
           <Route path="/galeria" element={<GalleryPage />} />
           <Route path="/mural" element={<WallPage />} />

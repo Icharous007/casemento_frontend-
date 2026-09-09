@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import { registerGuestAccess } from '../../api/guestApi';
+import { maskPhone } from '../../utils/phoneMask';
 import GuestLayout from './GuestLayout';
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -108,10 +109,12 @@ export default function SaveTheDatePage() {
             fullWidth
             label="Telefone (WhatsApp)"
             type="tel"
+            inputMode="numeric"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(maskPhone(e.target.value))}
             placeholder="(11) 99999-9999"
             sx={{ mb: 2 }}
+            autoComplete="tel"
           />
 
           <Divider sx={{ mb: 2 }} />
