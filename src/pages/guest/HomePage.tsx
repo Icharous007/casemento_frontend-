@@ -123,7 +123,7 @@ export default function GuestHomePage() {
               <Button
                 variant="contained"
                 size="large"
-                onClick={() => navigate('/rsvp')}
+                onClick={() => navigate('/minha-familia')}
                 sx={{ borderRadius: 999, py: 1.5 }}
               >
                 {rsvpStatus === 'PENDING' ? 'Confirmar presença' : 'Ver confirmação'}
