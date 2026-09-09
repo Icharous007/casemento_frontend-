@@ -9,7 +9,7 @@ import {
   Alert,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import { listRsvps, overrideRsvp } from '../../api/adminRsvpApi';
+import { listRsvps, overrideRsvp, getConfirmedRsvpExportUrl } from '../../api/adminRsvpApi';
 import { listGuests } from '../../api/adminGuestsApi';
 
 export default function AdminRsvpPage() {
@@ -58,9 +58,10 @@ export default function AdminRsvpPage() {
 
   return (
     <Box>
-      <Typography variant="h5" sx={{ fontWeight: 500, mb: 3 }}>
-        Confirmações de Presença (RSVP)
-      </Typography>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 500 }}>Confirmações de Presença (RSVP)</Typography>
+        <Button component="a" href={getConfirmedRsvpExportUrl()} download variant="outlined">Exportar confirmados</Button>
+      </Stack>
 
       {rsvpQuery.isLoading && <CircularProgress />}
 
@@ -111,8 +112,10 @@ export default function AdminRsvpPage() {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Convidado</TableCell>
+                <TableCell>Convidado</TableCell>
+                <TableCell>Tipo</TableCell>
               <TableCell>Resposta</TableCell>
+                <TableCell>Restrições / alergias</TableCell>
               <TableCell>Respondido em</TableCell>
               <TableCell>Atualizado em</TableCell>
               <TableCell align="right">Ações</TableCell>
@@ -122,16 +125,18 @@ export default function AdminRsvpPage() {
             {rsvpQuery.data?.items.map((r) => (
               <TableRow key={r.guestId} hover>
                 <TableCell>
-                  <Typography variant="body2">
-                    {guestNameMap.get(r.guestId) ?? r.guestId}
-                  </Typography>
+                  <Typography variant="body2">{r.guestName ?? guestNameMap.get(r.guestId) ?? r.guestId}</Typography>
                 </TableCell>
+                <TableCell>{r.guestType === 'CHILD' ? `Criança${r.age != null ? ` (${r.age})` : ''}` : 'Adulto'}</TableCell>
                 <TableCell>
                   <Chip
                     label={r.attendanceStatus === 'ATTENDING' ? 'Confirmado' : 'Recusado'}
                     color={r.attendanceStatus === 'ATTENDING' ? 'primary' : 'secondary'}
                     size="small"
                   />
+                </TableCell>
+                <TableCell>
+                  {[r.dietaryRestrictions, r.allergies].filter(Boolean).join(' / ') || '—'}
                 </TableCell>
                 <TableCell>{new Date(r.respondedAt).toLocaleDateString('pt-BR')}</TableCell>
                 <TableCell>{new Date(r.lastChangedAt).toLocaleDateString('pt-BR')}</TableCell>
@@ -146,7 +151,7 @@ export default function AdminRsvpPage() {
             ))}
             {!rsvpQuery.isLoading && !rsvpQuery.data?.items.length && (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                  <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                   Nenhuma confirmação registrada ainda.
                 </TableCell>
               </TableRow>

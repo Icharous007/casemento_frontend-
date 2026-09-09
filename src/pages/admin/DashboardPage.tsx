@@ -5,7 +5,7 @@ import HowToRegIcon from '@mui/icons-material/HowToReg';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import { listGuests } from '../../api/adminGuestsApi';
-import { listRsvps } from '../../api/adminRsvpApi';
+import { getRsvpSummary, listRsvps } from '../../api/adminRsvpApi';
 
 function StatCard({
   label, value, icon, color,
@@ -43,13 +43,13 @@ function StatCard({
 export default function DashboardPage() {
   const guestsQuery = useQuery({ queryKey: ['admin', 'guests'], queryFn: () => listGuests({ pageSize: 1 }) });
   const rsvpQuery = useQuery({ queryKey: ['admin', 'rsvps'], queryFn: () => listRsvps() });
+  const summaryQuery = useQuery({ queryKey: ['admin', 'rsvp-summary'], queryFn: () => getRsvpSummary() });
 
-  const totalGuests = guestsQuery.data?.total ?? '—';
-  const attending = rsvpQuery.data?.summary.attending ?? '—';
-  const declined = rsvpQuery.data?.summary.declined ?? '—';
-  const pending = (typeof totalGuests === 'number' && typeof attending === 'number' && typeof declined === 'number')
-    ? totalGuests - attending - declined
-    : '—';
+  const summary = summaryQuery.data;
+  const totalGuests = summary?.totalGuests ?? '—';
+  const attending = summary?.attending ?? '—';
+  const declined = summary?.declined ?? '—';
+  const pending = summary?.pending ?? '—';
 
   return (
     <Box>
@@ -57,7 +57,7 @@ export default function DashboardPage() {
         Dashboard
       </Typography>
 
-      {(guestsQuery.isLoading || rsvpQuery.isLoading) && (
+      {(guestsQuery.isLoading || rsvpQuery.isLoading || summaryQuery.isLoading) && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress />
         </Box>
@@ -77,6 +77,15 @@ export default function DashboardPage() {
           <StatCard label="Pendentes" value={pending} icon={<HourglassEmptyIcon />} color="info" />
         </Grid>
       </Grid>
+
+      {summary && (
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 3 }}>
+          <Chip label={`Adultos confirmados: ${summary.attendingAdults}`} color="primary" />
+          <Chip label={`Crianças confirmadas: ${summary.attendingChildren}`} color="secondary" />
+          <Chip label={`Com restrições: ${summary.withDietaryRestrictions}`} />
+          <Chip label={`Com alergias: ${summary.withAllergies}`} />
+        </Box>
+      )}
 
       {rsvpQuery.data && (
         <Box sx={{ mt: 4 }}>
