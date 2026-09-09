@@ -6,6 +6,10 @@ export interface AddPartyMemberRequest {
   phone?: string;
   guestType: 'ADULT' | 'CHILD';
   age?: number;
+  attendanceStatus: 'ATTENDING' | 'DECLINED';
+  dietaryRestrictions: string;
+  allergies: string;
+  additionalInfo: string;
 }
 
 export interface PartyMemberResponse {

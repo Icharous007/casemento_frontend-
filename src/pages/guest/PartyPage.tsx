@@ -46,6 +46,11 @@ const ERROR_MESSAGES: Record<string, string> = {
   NAME_EMPTY: 'Nome não pode estar vazio.',
   INVALID_GUEST_TYPE: 'Tipo de convidado inválido.',
   RSVP_DEADLINE_EXPIRED: 'Prazo de confirmação encerrado.',
+  AGE_REQUIRED: 'Informe uma idade válida para a criança.',
+  ATTENDANCE_REQUIRED: 'Informe se a pessoa irá ao evento.',
+  DIETARY_REQUIRED: 'Informe as restrições alimentares ou escreva "Não possui".',
+  ALLERGIES_REQUIRED: 'Informe as alergias ou escreva "Não possui".',
+  ADDITIONAL_INFO_REQUIRED: 'Informe dados adicionais ou escreva "Não se aplica".',
 };
 
 function getErrorMessage(code: string): string {
@@ -108,6 +113,14 @@ export default function PartyPage() {
   const [adultName, setAdultName] = useState('');
   const [adultPhone, setAdultPhone] = useState('');
   const [adultAge, setAdultAge] = useState<number | null>(null);
+  const [childAttendance, setChildAttendance] = useState<'ATTENDING' | 'DECLINED' | null>(null);
+  const [childDietary, setChildDietary] = useState('');
+  const [childAllergies, setChildAllergies] = useState('');
+  const [childAdditional, setChildAdditional] = useState('');
+  const [adultAttendance, setAdultAttendance] = useState<'ATTENDING' | 'DECLINED' | null>(null);
+  const [adultDietary, setAdultDietary] = useState('');
+  const [adultAllergies, setAdultAllergies] = useState('');
+  const [adultAdditional, setAdultAdditional] = useState('');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -119,16 +132,29 @@ export default function PartyPage() {
     setAdultName('');
     setAdultPhone('');
     setAdultAge(null);
+    setChildAttendance(null);
+    setChildDietary('');
+    setChildAllergies('');
+    setChildAdditional('');
+    setAdultAttendance(null);
+    setAdultDietary('');
+    setAdultAllergies('');
+    setAdultAdditional('');
   };
 
   async function handleAddChild() {
     if (childName.trim().length < 2) {
       return;
     }
+    if (!childAttendance || childAge === null || childAge < 0 || childAge > 120 || !childDietary.trim() || !childAllergies.trim() || !childAdditional.trim()) return;
     const request: AddPartyMemberRequest = {
       name: childName,
       guestType: 'CHILD',
-      age: childAge || undefined,
+      age: childAge,
+      attendanceStatus: childAttendance,
+      dietaryRestrictions: childDietary.trim(),
+      allergies: childAllergies.trim(),
+      additionalInfo: childAdditional.trim(),
     };
     addMutation.mutate(request);
   }
@@ -140,11 +166,16 @@ export default function PartyPage() {
     if (!isPhoneLengthValid(adultPhone)) {
       return;
     }
+    if (!adultAttendance || !adultDietary.trim() || !adultAllergies.trim() || !adultAdditional.trim()) return;
     const request: AddPartyMemberRequest = {
       name: adultName,
       phone: unmaskPhone(adultPhone),
       guestType: 'ADULT',
       age: adultAge || undefined,
+      attendanceStatus: adultAttendance,
+      dietaryRestrictions: adultDietary.trim(),
+      allergies: adultAllergies.trim(),
+      additionalInfo: adultAdditional.trim(),
     };
     addMutation.mutate(request);
   }
@@ -343,12 +374,23 @@ export default function PartyPage() {
 
           <TextField
             fullWidth
-            label="Idade (opcional)"
+            label="Idade *"
             type="number"
             value={childAge !== null ? childAge : ''}
             onChange={(e) => setChildAge(e.target.value ? parseInt(e.target.value) : null)}
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
+            error={childAge !== null && (childAge < 0 || childAge > 120)}
+            helperText="Obrigatória para crianças"
           />
+
+          <Typography variant="body2" sx={{ mb: 1 }}>A criança irá ao evento?</Typography>
+          <ToggleButtonGroup value={childAttendance} exclusive onChange={(_, value) => value && setChildAttendance(value)} fullWidth sx={{ mb: 2 }}>
+            <ToggleButton value="ATTENDING">Sim, vai!</ToggleButton>
+            <ToggleButton value="DECLINED">Não vai</ToggleButton>
+          </ToggleButtonGroup>
+          <TextField fullWidth required label="Restrições alimentares" placeholder="Escreva Não possui, se não houver" value={childDietary} onChange={(e) => setChildDietary(e.target.value)} sx={{ mb: 2 }} multiline rows={2} />
+          <TextField fullWidth required label="Alergias" placeholder="Escreva Não possui, se não houver" value={childAllergies} onChange={(e) => setChildAllergies(e.target.value)} sx={{ mb: 2 }} multiline rows={2} />
+          <TextField fullWidth required label="Informações adicionais" placeholder="Escreva Não se aplica, se não houver" value={childAdditional} onChange={(e) => setChildAdditional(e.target.value)} sx={{ mb: 3 }} multiline rows={2} />
 
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Button
@@ -363,7 +405,7 @@ export default function PartyPage() {
               variant="contained"
               fullWidth
               onClick={handleAddChild}
-              disabled={childName.trim().length < 2 || addMutation.isPending}
+              disabled={childName.trim().length < 2 || childAge === null || childAge < 0 || childAge > 120 || !childAttendance || !childDietary.trim() || !childAllergies.trim() || !childAdditional.trim() || addMutation.isPending}
               startIcon={
                 addMutation.isPending ? <CircularProgress size={20} color="inherit" /> : undefined
               }
@@ -419,8 +461,17 @@ export default function PartyPage() {
             type="number"
             value={adultAge !== null ? adultAge : ''}
             onChange={(e) => setAdultAge(e.target.value ? parseInt(e.target.value) : null)}
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
           />
+
+          <Typography variant="body2" sx={{ mb: 1 }}>A pessoa irá ao evento?</Typography>
+          <ToggleButtonGroup value={adultAttendance} exclusive onChange={(_, value) => value && setAdultAttendance(value)} fullWidth sx={{ mb: 2 }}>
+            <ToggleButton value="ATTENDING">Sim, vai!</ToggleButton>
+            <ToggleButton value="DECLINED">Não vai</ToggleButton>
+          </ToggleButtonGroup>
+          <TextField fullWidth required label="Restrições alimentares" placeholder="Escreva Não possui, se não houver" value={adultDietary} onChange={(e) => setAdultDietary(e.target.value)} sx={{ mb: 2 }} multiline rows={2} />
+          <TextField fullWidth required label="Alergias" placeholder="Escreva Não possui, se não houver" value={adultAllergies} onChange={(e) => setAdultAllergies(e.target.value)} sx={{ mb: 2 }} multiline rows={2} />
+          <TextField fullWidth required label="Informações adicionais" placeholder="Escreva Não se aplica, se não houver" value={adultAdditional} onChange={(e) => setAdultAdditional(e.target.value)} sx={{ mb: 3 }} multiline rows={2} />
 
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Button
@@ -438,6 +489,7 @@ export default function PartyPage() {
               disabled={
                 adultName.trim().length < 2 ||
                 !isPhoneLengthValid(adultPhone) ||
+                !adultAttendance || !adultDietary.trim() || !adultAllergies.trim() || !adultAdditional.trim() ||
                 addMutation.isPending
               }
               startIcon={

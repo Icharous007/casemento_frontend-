@@ -2,7 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as partyApi from '../../api/partyApi';
 import axios from 'axios';
 
-vi.mock('axios');
+vi.mock('axios', () => {
+  const client = {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    interceptors: { request: { use: vi.fn() }, response: { use: vi.fn() } },
+  };
+  return { default: { ...client, create: vi.fn(() => client) } };
+});
 
 describe('partyApi', () => {
   beforeEach(() => {
@@ -39,6 +48,10 @@ describe('partyApi', () => {
         phone: undefined,
         guestType: 'CHILD' as const,
         age: 7,
+        attendanceStatus: 'ATTENDING' as const,
+        dietaryRestrictions: 'Não possui',
+        allergies: 'Não possui',
+        additionalInfo: 'Não se aplica',
       };
       
       const mockResponse = {
@@ -63,6 +76,10 @@ describe('partyApi', () => {
         phone: undefined,
         guestType: 'CHILD' as const,
         age: undefined,
+        attendanceStatus: 'ATTENDING' as const,
+        dietaryRestrictions: 'Não possui',
+        allergies: 'Não possui',
+        additionalInfo: 'Não se aplica',
       };
       
       const apiError = {
