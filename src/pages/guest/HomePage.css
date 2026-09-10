@@ -49,8 +49,8 @@
 .save-date-poster {
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
+  height: auto;
+  object-fit: contain;
   border-radius: 32px;
   box-shadow: 0 28px 60px rgba(107, 134, 203, 0.20);
 }

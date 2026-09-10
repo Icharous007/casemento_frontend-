@@ -8,7 +8,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { getMe } from '../../api/guestApi';
 import { EVENT_LOCATIONS } from '../../api/locationsApi';
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
-import saveTheDateImage from '../../assets/save_the_date.png';
+import saveTheDateImage from '../../assets/home2.png';
 import ceremonyImage from '../../assets/local_cerimonia_casamento.png';
 import partyImage from '../../assets/local_festa_casamento.png';
 import './HomePage.css';
