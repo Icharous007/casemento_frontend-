@@ -22,7 +22,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(null);
 
   async function login(email: string, password: string) {
-    const data: LoginResponse = await adminLogin(email, password);
+    const data: LoginResponse = await adminLogin(email.trim(), password);
     setAdminAccessToken(data.accessToken);
     localStorage.setItem('admin_refresh_token', data.refreshToken);
     setUser(data.user);
