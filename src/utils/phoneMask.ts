@@ -22,7 +22,7 @@ export function maskPhone(value: string): string {
   }
 
   if (digits.length <= 2) {
-    return `(${digits}`;
+    return digits.length === 2 ? `(${digits}) ` : `(${digits}`;
   }
   if (digits.length <= 7) {
     return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;

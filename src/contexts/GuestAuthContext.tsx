@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { getGuestSession, setGuestSession } from '../api/client';
-import { type RegisterAccessResponse, getMe, type GuestMeResponse } from '../api/guestApi';
+import { type RegisterAccessResponse, getMe } from '../api/guestApi';
 
 interface GuestState {
   guestId: string;
@@ -36,7 +36,7 @@ export function GuestAuthProvider({ children }: { children: ReactNode }) {
     const session = getGuestSession();
     if (session?.accessToken) {
       getMe()
-        .then((_me: GuestMeResponse) => {})
+        .then(() => {})
         .catch(() => {
           setGuestSession(null);
           setGuest(null);
@@ -66,6 +66,7 @@ export function GuestAuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useGuestAuth() {
   const ctx = useContext(GuestAuthContext);
   if (!ctx) throw new Error('useGuestAuth must be inside GuestAuthProvider');

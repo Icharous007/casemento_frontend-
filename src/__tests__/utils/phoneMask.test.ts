@@ -34,7 +34,7 @@ describe('phoneMask utilities', () => {
     });
 
     it('should keep only digits', () => {
-      expect(unmaskPhone('(11) 9876-5432-1')).toBe('1198765432 1');
+      expect(unmaskPhone('(11) 9876-5432-1')).toBe('11987654321');
     });
   });
 

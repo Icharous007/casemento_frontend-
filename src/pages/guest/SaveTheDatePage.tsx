@@ -8,6 +8,7 @@ import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import { registerGuestAccess } from '../../api/guestApi';
 import { maskPhone } from '../../utils/phoneMask';
 import GuestLayout from './GuestLayout';
+import { getApiErrorData } from '../../utils/apiError';
 
 const ERROR_MESSAGES: Record<string, string> = {
   TERMS_NOT_ACCEPTED: 'Você precisa aceitar os termos para continuar.',
@@ -24,16 +25,20 @@ const saveDateCardSx = {
 };
 
 function resolveError(err: unknown): string {
-  const resp = (err as any)?.response;
-  if (!resp) {
+  const data = getApiErrorData(err);
+  if (typeof err !== 'object' || err === null || !('response' in err)) {
     return 'Nao foi possivel conectar ao servidor. Verifique se a API esta ativa e tente novamente.';
   }
-  const code: string | undefined = resp?.data?.code;
+  const response = err.response;
+  const status = typeof response === 'object' && response !== null && 'status' in response
+    ? response.status
+    : undefined;
+  const code = data.code;
   if (code && ERROR_MESSAGES[code]) return ERROR_MESSAGES[code];
-  if (resp?.status === 404) return ERROR_MESSAGES.NOT_FOUND;
-  if (resp?.status === 429) return 'Muitas requisições. Aguarde um momento e tente novamente.';
-  if (resp?.data?.message) return resp.data.message;
-  return `Falha ao entrar (status ${resp?.status ?? 'desconhecido'}${code ? `, codigo ${code}` : ''}).`;
+  if (status === 404) return ERROR_MESSAGES.NOT_FOUND;
+  if (status === 429) return 'Muitas requisições. Aguarde um momento e tente novamente.';
+  if (data.message) return data.message;
+  return `Falha ao entrar (status ${status ?? 'desconhecido'}${code ? `, codigo ${code}` : ''}).`;
 }
 
 export default function SaveTheDatePage() {

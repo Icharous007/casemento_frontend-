@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Typography,
+  Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography,
 } from '@mui/material';
 import { formatFileSize, isPhotoFile, isVideoFile } from '../../utils/mediaFile';
 
@@ -11,10 +11,13 @@ type Props = Readonly<{
   onDiscard: () => void;
   onPreviewRenderFailed: () => void;
   onPublish: () => void;
+  caption: string;
+  onCaptionChange: (caption: string) => void;
 }>;
 
 export default function MediaPreviewDialog({
   file, uploading, uploadProgress, onDiscard, onPreviewRenderFailed, onPublish,
+  caption, onCaptionChange,
 }: Props) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
@@ -81,6 +84,19 @@ export default function MediaPreviewDialog({
             {file.name} · {formatFileSize(file.size)}
           </Typography>
         )}
+        <TextField
+          label="Legenda (opcional)"
+          value={caption}
+          onChange={(event) => onCaptionChange(event.target.value)}
+          disabled={uploading}
+          fullWidth
+          multiline
+          minRows={2}
+          maxRows={5}
+          slotProps={{ htmlInput: { maxLength: 500 } }}
+          helperText={`${caption.length}/500`}
+          sx={{ mt: 2 }}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onDiscard} disabled={uploading}>Descartar</Button>

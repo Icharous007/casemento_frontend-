@@ -11,6 +11,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import { listRsvps, overrideRsvp, getConfirmedRsvpExportUrl } from '../../api/adminRsvpApi';
 import { listGuests } from '../../api/adminGuestsApi';
+import { getApiErrorData } from '../../utils/apiError';
 
 export default function AdminRsvpPage() {
   const qc = useQueryClient();
@@ -45,7 +46,7 @@ export default function AdminRsvpPage() {
       qc.invalidateQueries({ queryKey: ['admin', 'rsvps'] });
       setOverrideTarget(null);
     },
-    onError: (err: any) => setOverrideError(err?.response?.data?.message ?? 'Erro ao alterar confirmação.'),
+    onError: (err: unknown) => setOverrideError(getApiErrorData(err).message ?? 'Erro ao alterar confirmação.'),
   });
 
   function openOverride(guestId: string, currentStatus: string) {

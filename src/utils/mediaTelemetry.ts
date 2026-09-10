@@ -1,7 +1,7 @@
 export type MediaCaptureSource = 'photo' | 'video' | 'gallery';
 export type MediaType = 'photo' | 'video' | 'unknown';
 
-import type { ObservedMediaError, ErrorCategory } from '../types/mediaDiagnostics';
+import type { ObservedMediaError, ErrorCategory, ErrorStage } from '../types/mediaDiagnostics';
 import { MediaErrorQueue } from './mediaDiagnosticsUtils';
 
 export type MediaAttempt = Readonly<{
@@ -103,7 +103,7 @@ export function recordMediaError(
     attemptId: attempt.attemptId,
     eventType,
     category,
-    stage: mapEventTypeToStage(eventType) as any,
+    stage: mapEventTypeToStage(eventType),
     source: 'CLIENT',
     mediaType: details.mediaType,
     contentType: details.contentType,
@@ -137,7 +137,7 @@ export function recordMediaError(
 /**
  * Map event type to processing stage.
  */
-function mapEventTypeToStage(eventType: string): string {
+function mapEventTypeToStage(eventType: string): ErrorStage {
   const lowerType = eventType.toLowerCase();
   if (lowerType.includes('validation')) return 'validation';
   if (lowerType.includes('upload')) return 'upload';

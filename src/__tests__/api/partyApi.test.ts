@@ -29,7 +29,7 @@ describe('partyApi', () => {
 
       const result = await partyApi.listPartyMembers();
 
-      expect(axios.get).toHaveBeenCalledWith('/api/v1/me/party');
+      expect(axios.get).toHaveBeenCalledWith('/me/party');
       expect(result).toEqual(mockMembers);
     });
 
@@ -66,7 +66,7 @@ describe('partyApi', () => {
 
       const result = await partyApi.addPartyMember(request);
 
-      expect(axios.post).toHaveBeenCalledWith('/api/v1/me/party', request);
+      expect(axios.post).toHaveBeenCalledWith('/me/party', request);
       expect(result).toEqual(mockResponse);
     });
 
@@ -110,7 +110,7 @@ describe('partyApi', () => {
       await partyApi.confirmPartyMemberRsvp(guestId, payload);
 
       expect(axios.put).toHaveBeenCalledWith(
-        `/api/v1/me/party/${guestId}/rsvp`,
+        `/me/party/${guestId}/rsvp`,
         payload
       );
     });
@@ -124,7 +124,7 @@ describe('partyApi', () => {
 
       await partyApi.removePartyMember(guestId);
 
-      expect(axios.delete).toHaveBeenCalledWith(`/api/v1/me/party/${guestId}`);
+      expect(axios.delete).toHaveBeenCalledWith(`/me/party/${guestId}`);
     });
 
     it('should handle removal errors', async () => {

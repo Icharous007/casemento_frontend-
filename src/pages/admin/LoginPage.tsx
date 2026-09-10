@@ -7,6 +7,7 @@ import {
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
+import { getApiErrorData } from '../../utils/apiError';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -23,8 +24,8 @@ export default function LoginPage() {
     try {
       await login(email, password);
       navigate('/admin');
-    } catch (err: any) {
-      const msg = err?.response?.data?.message ?? 'E-mail ou senha inválidos.';
+    } catch (err: unknown) {
+      const msg = getApiErrorData(err).message ?? 'E-mail ou senha inválidos.';
       setError(msg);
     } finally {
       setLoading(false);

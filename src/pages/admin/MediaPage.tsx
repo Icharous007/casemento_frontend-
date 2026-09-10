@@ -99,6 +99,7 @@ export default function AdminMediaPage() {
               <TableRow>
                 <TableCell>Tipo</TableCell>
                 <TableCell>Convidado</TableCell>
+                <TableCell>Legenda</TableCell>
                 <TableCell>Curtidas</TableCell>
                 <TableCell>Comentários</TableCell>
                 <TableCell>Tamanho</TableCell>
@@ -110,7 +111,7 @@ export default function AdminMediaPage() {
             <TableBody>
               {(data?.items ?? []).length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                    <TableCell colSpan={9} align="center">
                     <Typography color="text.secondary" variant="body2" sx={{ py: 2 }}>
                       Nenhuma mídia encontrada.
                     </Typography>
@@ -127,6 +128,9 @@ export default function AdminMediaPage() {
                     />
                   </TableCell>
                   <TableCell>{item.guestName}</TableCell>
+                  <TableCell sx={{ maxWidth: 260, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                    {item.caption || '—'}
+                  </TableCell>
                   <TableCell>{item.likeCount}</TableCell>
                   <TableCell>{item.commentCount ?? 0}</TableCell>
                   <TableCell>

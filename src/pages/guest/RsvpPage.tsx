@@ -10,6 +10,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { getMe } from '../../api/guestApi';
 import { submitRsvp } from '../../api/rsvpApi';
 import GuestLayout from './GuestLayout';
+import { getApiErrorData } from '../../utils/apiError';
 
 const rsvpPanelSx = {
   border: '1px solid rgba(181, 154, 199, 0.20)',
@@ -81,7 +82,7 @@ export default function GuestRsvpPage() {
 
       {mutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {(mutation.error as any)?.response?.data?.message ?? 'Erro ao confirmar. Tente novamente.'}
+          {getApiErrorData(mutation.error).message ?? 'Erro ao confirmar. Tente novamente.'}
         </Alert>
       )}
 

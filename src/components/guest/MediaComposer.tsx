@@ -26,12 +26,14 @@ export default function MediaComposer() {
   const qc = useQueryClient();
   const [error, setError] = useState('');
   const [pending, setPending] = useState<File | null>(null);
+  const [caption, setCaption] = useState('');
   const [pendingAttempt, setPendingAttempt] = useState<MediaAttempt | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   async function handleFile(file: File, attempt: MediaAttempt) {
     setError('');
+    setCaption('');
     let prepared = prepareMediaFile(file);
     const contentType = inferMediaContentType(prepared);
     const mediaType = mediaTypeFromMime(contentType);
@@ -75,6 +77,7 @@ export default function MediaComposer() {
       return;
     }
     setPending(prepared);
+    setCaption('');
     setPendingAttempt(attempt);
     logMediaEvent('guest_media_preview_opened', attempt, {
       mediaType,
@@ -97,7 +100,7 @@ export default function MediaComposer() {
       sizeBytes: pending.size,
     });
     try {
-      await uploadMedia(pending, pendingAttempt.attemptId, setUploadProgress);
+      await uploadMedia(pending, pendingAttempt.attemptId, caption, setUploadProgress);
       qc.invalidateQueries({ queryKey: ['guest', 'media'] });
       logMediaEvent('guest_media_upload_succeeded', pendingAttempt, {
         mediaType,
@@ -106,6 +109,7 @@ export default function MediaComposer() {
         elapsedMs: elapsedSince(startedAt),
       });
       setPending(null);
+      setCaption('');
       setPendingAttempt(null);
     } catch (err) {
       setError(uploadErrorMessage(err));
@@ -139,6 +143,7 @@ export default function MediaComposer() {
             });
           }
           setPending(null);
+          setCaption('');
           setPendingAttempt(null);
         }}
         onPreviewRenderFailed={() => {
@@ -151,6 +156,8 @@ export default function MediaComposer() {
           }
         }}
         onPublish={() => { void handlePublish(); }}
+        caption={caption}
+        onCaptionChange={setCaption}
       />
     </Box>
   );

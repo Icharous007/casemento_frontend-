@@ -19,6 +19,7 @@ import {
   type GiftItemAdmin,
   type CreateGiftRequest,
 } from '../../api/giftsApi';
+import { getApiErrorData } from '../../utils/apiError';
 
 const PAGE_SIZE = 20;
 
@@ -50,13 +51,13 @@ export default function AdminGiftsPage() {
   const createMut = useMutation({
     mutationFn: () => adminCreateGift(form),
     onSuccess: () => { invalidate(); closeForm(); },
-    onError: (err: any) => setFormError(err?.response?.data?.message ?? 'Erro ao salvar.'),
+    onError: (err: unknown) => setFormError(getApiErrorData(err).message ?? 'Erro ao salvar.'),
   });
 
   const updateMut = useMutation({
     mutationFn: () => adminUpdateGift(editItem?.id ?? '', form),
     onSuccess: () => { invalidate(); closeForm(); },
-    onError: (err: any) => setFormError(err?.response?.data?.message ?? 'Erro ao salvar.'),
+    onError: (err: unknown) => setFormError(getApiErrorData(err).message ?? 'Erro ao salvar.'),
   });
 
   const deleteMut = useMutation({

@@ -17,6 +17,7 @@ import {
   createAudioPost,
   type WallPost,
 } from '../../api/wallApi';
+import { getApiErrorData } from '../../utils/apiError';
 
 const PAGE_SIZE = 20;
 
@@ -59,8 +60,8 @@ export default function WallPage() {
       setTextContent('');
       setPostError('');
     },
-    onError: (err: any) => {
-      setPostError(err?.response?.data?.message ?? 'Erro ao publicar. Tente novamente.');
+    onError: (err: unknown) => {
+      setPostError(getApiErrorData(err).message ?? 'Erro ao publicar. Tente novamente.');
     },
   });
 
@@ -73,8 +74,8 @@ export default function WallPage() {
       setAudioDialogOpen(false);
       setPostError('');
     },
-    onError: (err: any) => {
-      setPostError(err?.response?.data?.message ?? 'Erro ao enviar áudio. Tente novamente.');
+    onError: (err: unknown) => {
+      setPostError(getApiErrorData(err).message ?? 'Erro ao enviar áudio. Tente novamente.');
     },
   });
 

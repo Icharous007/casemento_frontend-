@@ -19,6 +19,7 @@ export interface MediaItem {
   thumbnailUrl: string | null;
   displayUrl: string | null;
   contentType: string;
+  caption: string | null;
   fileSizeBytes: number;
   likeCount: number;
   likedByMe: boolean;
@@ -83,12 +84,14 @@ export async function listMedia(params?: {
 export async function uploadMedia(
   file: File,
   idempotencyKey: string,
+  caption: string,
   onProgress?: (percentage: number) => void,
 ): Promise<MediaItem> {
   const contentType = file.type.toLowerCase().trim();
   if (import.meta.env.DEV && import.meta.env.VITE_DIRECT_R2_UPLOAD !== 'true') {
     const form = new FormData();
     form.append('file', file);
+    form.append('caption', caption.trim());
     const { data } = await guestClient.post<MediaItem>('/media/upload', form, {
       headers: { 'Content-Type': undefined },
       timeout: 600_000,
@@ -103,6 +106,7 @@ export async function uploadMedia(
     filename: file.name,
     contentType,
     fileSizeBytes: file.size,
+    caption: caption.trim() || null,
   }, {
     headers: { 'Idempotency-Key': idempotencyKey },
   });

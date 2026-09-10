@@ -17,6 +17,7 @@ import {
   listGuests, createGuest, deleteGuest, blockGuest, importGuestsFile,
   getQrCodesExportUrl, getEventQrCodeUrl,
 } from '../../api/adminGuestsApi';
+import { getApiErrorData } from '../../utils/apiError';
 
 const PAGE_SIZE = 20;
 
@@ -41,7 +42,7 @@ export default function GuestsPage() {
   const [newName, setNewName] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [createError, setCreateError] = useState('');
-  const [importResult, setImportResult] = useState<{ imported: number; errors: any[] } | null>(null);
+  const [importResult, setImportResult] = useState<{ imported: number; errors: { row: number; reason: string }[] } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading } = useQuery({
@@ -58,7 +59,7 @@ export default function GuestsPage() {
       setNewPhone('');
       setCreateError('');
     },
-    onError: (err: any) => setCreateError(err?.response?.data?.message ?? 'Erro ao criar convidado.'),
+    onError: (err: unknown) => setCreateError(getApiErrorData(err).message ?? 'Erro ao criar convidado.'),
   });
 
   const deleteMut = useMutation({
@@ -79,7 +80,7 @@ export default function GuestsPage() {
       setImportResult(result);
       qc.invalidateQueries({ queryKey: ['admin', 'guests'] });
     } catch {
-      setImportResult({ imported: 0, errors: [{ reason: 'Erro ao enviar arquivo.' }] });
+      setImportResult({ imported: 0, errors: [{ row: 0, reason: 'Erro ao enviar arquivo.' }] });
     } finally {
       if (fileRef.current) fileRef.current.value = '';
     }

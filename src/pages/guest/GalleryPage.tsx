@@ -747,6 +747,11 @@ export default function GalleryPage() {
                         </Typography>
                       </Box>
                     </Stack>
+                    {item.caption && (
+                      <Typography sx={{ fontSize: 14, lineHeight: 1.4, mb: 0.75, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                        {item.caption}
+                      </Typography>
+                    )}
                     <Typography sx={{ fontSize: 13, opacity: 0.92 }}>
                       Toque para pausar · toque duas vezes para curtir
                     </Typography>

@@ -11,6 +11,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import GuestLayout from './GuestLayout';
 import { listGifts, markGiftPurchased, type GiftItem } from '../../api/giftsApi';
+import { getApiErrorData } from '../../utils/apiError';
 
 const giftCardSx = {
   height: '100%',
@@ -41,8 +42,8 @@ export default function GiftsPage() {
       setConfirmItem(null);
       setErrorMsg('');
     },
-    onError: (err: any) => {
-      const code = err?.response?.data?.code;
+    onError: (err: unknown) => {
+      const code = getApiErrorData(err).code;
       setErrorMsg(
         code === 'GIFT_ALREADY_PURCHASED'
           ? 'Este presente já foi marcado como comprado por outro convidado.'

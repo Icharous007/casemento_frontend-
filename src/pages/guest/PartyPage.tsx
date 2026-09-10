@@ -33,6 +33,7 @@ import {
   type PartyMemberResponse,
 } from '../../api/partyApi';
 import GuestLayout from './GuestLayout';
+import { getApiErrorData } from '../../utils/apiError';
 import { maskPhone, unmaskPhone, isPhoneLengthValid } from '../../utils/phoneMask';
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -232,7 +233,7 @@ export default function PartyPage() {
       {addMutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {getErrorMessage(
-            (addMutation.error as any)?.response?.data?.code || 'ERROR'
+            getApiErrorData(addMutation.error).code || 'ERROR'
           )}
         </Alert>
       )}
@@ -240,7 +241,7 @@ export default function PartyPage() {
       {removeMutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {getErrorMessage(
-            (removeMutation.error as any)?.response?.data?.code || 'ERROR'
+            getApiErrorData(removeMutation.error).code || 'ERROR'
           )}
         </Alert>
       )}
