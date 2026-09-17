@@ -94,6 +94,8 @@ export default function PartyPage() {
       confirmPartyMemberRsvp(guestId, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['guest', 'party'] });
+      setSuccessMessage('Presença confirmada com sucesso!');
+      setTimeout(() => setSuccessMessage(null), 3000);
     },
   });
 
@@ -234,6 +236,14 @@ export default function PartyPage() {
         <Alert severity="error" sx={{ mb: 2 }}>
           {getErrorMessage(
             getApiErrorData(addMutation.error).code || 'ERROR'
+          )}
+        </Alert>
+      )}
+
+      {confirmRsvpMutation.isError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {getErrorMessage(
+            getApiErrorData(confirmRsvpMutation.error).code || 'ERROR'
           )}
         </Alert>
       )}
