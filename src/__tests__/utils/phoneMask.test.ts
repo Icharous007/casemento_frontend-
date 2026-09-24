@@ -3,14 +3,14 @@ import { maskPhone, unmaskPhone, isPhoneLengthValid } from '../../utils/phoneMas
 
 describe('phoneMask utilities', () => {
   describe('maskPhone', () => {
-    it('should format 11 digits to (XX) XXXXX-XXXX', () => {
+    it('should format 11 digits to XX XXXXX-XXXX', () => {
       const result = maskPhone('11987654321');
-      expect(result).toBe('(11) 98765-4321');
+      expect(result).toBe('11 98765-4321');
     });
 
     it('should handle partial input', () => {
-      expect(maskPhone('119876')).toBe('(11) 9876');
-      expect(maskPhone('11')).toBe('(11) ');
+      expect(maskPhone('119876')).toBe('11 9876');
+      expect(maskPhone('11')).toBe('11 ');
     });
 
     it('should return empty string for empty input', () => {
@@ -19,13 +19,18 @@ describe('phoneMask utilities', () => {
 
     it('should remove non-digits before masking', () => {
       const result = maskPhone('(11) 98765-4321');
-      expect(result).toBe('(11) 98765-4321');
+      expect(result).toBe('11 98765-4321');
+    });
+
+    it('should remove a two or three digit country code when pasted', () => {
+      expect(maskPhone('+55 11 98765-4321')).toBe('11 98765-4321');
+      expect(maskPhone('+351 11 98765-4321')).toBe('11 98765-4321');
     });
   });
 
   describe('unmaskPhone', () => {
     it('should remove all non-digits', () => {
-      const result = unmaskPhone('(11) 98765-4321');
+      const result = unmaskPhone('11 98765-4321');
       expect(result).toBe('11987654321');
     });
 
@@ -34,14 +39,15 @@ describe('phoneMask utilities', () => {
     });
 
     it('should keep only digits', () => {
-      expect(unmaskPhone('(11) 9876-5432-1')).toBe('11987654321');
+      expect(unmaskPhone('11 9876-5432-1')).toBe('11987654321');
+      expect(unmaskPhone('+55 11 98765-4321')).toBe('11987654321');
     });
   });
 
   describe('isPhoneLengthValid', () => {
     it('should return true for exactly 11 digits', () => {
       expect(isPhoneLengthValid('11987654321')).toBe(true);
-      expect(isPhoneLengthValid('(11) 98765-4321')).toBe(true);
+      expect(isPhoneLengthValid('11 98765-4321')).toBe(true);
     });
 
     it('should return false for less than 11 digits', () => {
@@ -49,8 +55,8 @@ describe('phoneMask utilities', () => {
       expect(isPhoneLengthValid('(11) 9876')).toBe(false);
     });
 
-    it('should return false for more than 11 digits', () => {
-      expect(isPhoneLengthValid('119876543211')).toBe(false);
+    it('should accept 11 local digits with a country code', () => {
+      expect(isPhoneLengthValid('+55 11 98765-4321')).toBe(true);
     });
 
     it('should return false for empty string', () => {

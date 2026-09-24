@@ -43,7 +43,7 @@ export default function GuestRsvpPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['guest', 'me'] });
       setSuccess(true);
-      setTimeout(() => navigate('/home'), 2500);
+      setTimeout(() => navigate('/home'), 10000);
     },
   });
 
@@ -69,8 +69,17 @@ export default function GuestRsvpPage() {
       </Typography>
 
       {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          Confirmação registrada com sucesso! Redirecionando...
+        <Alert
+          severity="success"
+          variant="filled"
+          sx={{
+            mb: 3,
+            p: { xs: 2, sm: 2.5 },
+            '& .MuiAlert-icon': { fontSize: { xs: '1.75rem', sm: '2rem' } },
+            '& .MuiAlert-message': { fontSize: { xs: '1.05rem', sm: '1.15rem' }, fontWeight: 600 },
+          }}
+        >
+          Confirmação registrada com sucesso! Você será redirecionado em instantes.
         </Alert>
       )}
 

@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import { registerGuestAccess } from '../../api/guestApi';
-import { maskPhone } from '../../utils/phoneMask';
+import { isPhoneLengthValid, maskPhone } from '../../utils/phoneMask';
 import GuestLayout from './GuestLayout';
 import { getApiErrorData } from '../../utils/apiError';
 
@@ -59,7 +59,7 @@ export default function SaveTheDatePage() {
     setError('');
     setLoading(true);
     try {
-      const normalizedPhone = phone.replace(/\D/g, '');
+      const normalizedPhone = maskPhone(phone);
       const res = await registerGuestAccess({
         eventSlug,
         phone: normalizedPhone,
@@ -117,7 +117,7 @@ export default function SaveTheDatePage() {
             inputMode="numeric"
             value={phone}
             onChange={(e) => setPhone(maskPhone(e.target.value))}
-            placeholder="(11) 99999-9999"
+            placeholder="11 99999-9999"
             sx={{ mb: 2 }}
             autoComplete="tel"
           />
@@ -145,7 +145,7 @@ export default function SaveTheDatePage() {
             fullWidth
             size="large"
             onClick={handleSubmit}
-            disabled={loading || !phone.trim() || !displayName.trim() || !acceptedTerms}
+            disabled={loading || !isPhoneLengthValid(phone) || !displayName.trim() || !acceptedTerms}
             startIcon={loading ? <CircularProgress size={20} color="inherit" /> : undefined}
           >
             {loading ? 'Entrando...' : 'Entrar'}
