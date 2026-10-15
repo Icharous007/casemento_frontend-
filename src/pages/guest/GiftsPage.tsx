@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Card, CardContent, CardMedia, CardActions,
@@ -12,6 +11,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import GuestLayout from './GuestLayout';
 import { listGifts, markGiftPurchased, type GiftItem } from '../../api/giftsApi';
 import { getApiErrorData } from '../../utils/apiError';
+import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 
 const giftCardSx = {
   height: '100%',
@@ -25,7 +25,7 @@ const giftCardSx = {
 };
 
 export default function GiftsPage() {
-  const navigate = useNavigate();
+  const navigate = useAnimatedNavigate();
   const qc = useQueryClient();
   const [confirmItem, setConfirmItem] = useState<GiftItem | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -81,7 +81,7 @@ export default function GiftsPage() {
 
       <Button
         variant="text"
-        onClick={() => navigate('/home')}
+        onClick={() => navigate('/home', { direction: 'back' })}
         sx={{ mb: 2 }}
       >
         Voltar para Home

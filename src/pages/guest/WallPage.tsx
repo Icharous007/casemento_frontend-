@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Button, TextField, Card, CardContent,
@@ -18,6 +17,7 @@ import {
   type WallPost,
 } from '../../api/wallApi';
 import { getApiErrorData } from '../../utils/apiError';
+import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 
 const PAGE_SIZE = 20;
 
@@ -35,7 +35,7 @@ function formatDuration(sec: number) {
 }
 
 export default function WallPage() {
-  const navigate = useNavigate();
+  const navigate = useAnimatedNavigate();
   const qc = useQueryClient();
   const [page] = useState(1);
   const [textContent, setTextContent] = useState('');
@@ -205,7 +205,7 @@ export default function WallPage() {
 
       <Button
         variant="text"
-        onClick={() => navigate('/home')}
+        onClick={() => navigate('/home', { direction: 'back' })}
         sx={{ mb: 2 }}
       >
         Voltar para Home

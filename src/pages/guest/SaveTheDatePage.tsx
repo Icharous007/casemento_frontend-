@@ -1,27 +1,43 @@
-import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState, useRef, type CSSProperties } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Box, Typography, Alert, Button, TextField, CircularProgress,
   Checkbox, FormControlLabel, Divider, Card, CardContent,
 } from '@mui/material';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import { registerGuestAccess } from '../../api/guestApi';
 import { isPhoneLengthValid, maskPhone } from '../../utils/phoneMask';
 import GuestLayout from './GuestLayout';
 import { getApiErrorData } from '../../utils/apiError';
+import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
+import molduraImg from '../../assets/moldura.png';
+import molduraBgImg from '../../assets/moldura_background.png';
+import './SaveTheDatePage.css';
+
+const ENVELOPE_SESSION_KEY = 'wedding_envelope_opened';
+
+type EnvelopeStage = 'closed' | 'opening' | 'opened';
+
+function getInitialEnvelopeStage(): EnvelopeStage {
+  if (typeof window === 'undefined') return 'closed';
+  try {
+    return window.sessionStorage.getItem(ENVELOPE_SESSION_KEY) === '1' ? 'opened' : 'closed';
+  } catch {
+    return 'closed';
+  }
+}
+
+function staggerStyle(step: number): CSSProperties {
+  return { '--stagger-step': step } as CSSProperties;
+}
 
 const ERROR_MESSAGES: Record<string, string> = {
   TERMS_NOT_ACCEPTED: 'Você precisa aceitar os termos para continuar.',
   PHONE_INVALID: 'Número de telefone inválido. Verifique e tente novamente.',
   GUEST_BLOCKED: 'Acesso indisponível. Fale com Gustavo ou Maria Luiza.',
   NOT_FOUND: 'Evento não encontrado. Verifique o link ou QR code.',
-};
-
-const saveDateCardSx = {
-  border: '1px solid rgba(181, 154, 199, 0.20)',
-  borderRadius: 4,
-  background: 'linear-gradient(180deg, rgba(255, 253, 251, 0.96), rgba(215, 198, 234, 0.88))',
-  boxShadow: '0 18px 46px rgba(128, 102, 167, 0.14)',
 };
 
 function resolveError(err: unknown): string {
@@ -44,9 +60,13 @@ function resolveError(err: unknown): string {
 export default function SaveTheDatePage() {
   const [searchParams] = useSearchParams();
   const { loginWithRegisteredAccess } = useGuestAuth();
-  const navigate = useNavigate();
+  const navigate = useAnimatedNavigate();
 
   const eventSlug = searchParams.get('event') ?? '';
+
+  const [envelopeStage, setEnvelopeStage] = useState<EnvelopeStage>(getInitialEnvelopeStage);
+  const [isExitingSuccess, setIsExitingSuccess] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
 
   const [phone, setPhone] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -54,6 +74,28 @@ export default function SaveTheDatePage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  function handleOpenEnvelope() {
+    if (envelopeStage !== 'closed') return;
+    setEnvelopeStage('opening');
+
+    try {
+      window.sessionStorage.setItem(ENVELOPE_SESSION_KEY, '1');
+    } catch {
+      // ignore storage errors
+    }
+
+    window.setTimeout(() => {
+      setEnvelopeStage('opened');
+      window.setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 120);
+    }, 520);
+  }
+
+  function handleReplayEnvelope() {
+    setEnvelopeStage('closed');
+  }
 
   async function handleSubmit() {
     setError('');
@@ -67,10 +109,12 @@ export default function SaveTheDatePage() {
         acceptedTerms,
       });
       loginWithRegisteredAccess(res);
-      navigate('/home');
+      setIsExitingSuccess(true);
+      window.setTimeout(() => {
+        navigate('/home', { direction: 'login-to-home' });
+      }, 280);
     } catch (err) {
       setError(resolveError(err));
-    } finally {
       setLoading(false);
     }
   }
@@ -90,68 +134,177 @@ export default function SaveTheDatePage() {
 
   return (
     <GuestLayout showHomeButton={false}>
-      <Box sx={{ textAlign: 'center', py: 2 }}>
-        <Card elevation={0} sx={saveDateCardSx}>
-          <CardContent sx={{ p: { xs: 3, sm: 4 }, '&:last-child': { pb: { xs: 3, sm: 4 } } }}>
-          <Typography variant="h5" sx={{ mb: 1, fontWeight: 400 }}>
-            Bem-vindo(a)!
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Informe seus dados para acessar a área do convidado.
-          </Typography>
+      <Box className="invitation-scene" sx={{ textAlign: 'center' }}>
+        <Box className="invitation-ambient-glow" aria-hidden="true" />
 
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-          <TextField
-            fullWidth
-            label="Seu nome ou apelido"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            sx={{ mb: 2 }}
-            autoFocus
-          />
-          <TextField
-            fullWidth
-            label="Telefone (WhatsApp)"
-            type="tel"
-            inputMode="numeric"
-            value={phone}
-            onChange={(e) => setPhone(maskPhone(e.target.value))}
-            placeholder="11 99999-9999"
-            sx={{ mb: 2 }}
-            autoComplete="tel"
-          />
-
-          <Divider sx={{ mb: 2 }} />
-
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                color="primary"
-              />
-            }
-            label={
-              <Typography variant="body2">
-                Aceito que meus dados sejam usados para organização do evento e confirmação de presença.
-              </Typography>
-            }
-            sx={{ mb: 3, alignItems: 'flex-start', textAlign: 'left' }}
-          />
-
-          <Button
-            variant="contained"
-            fullWidth
-            size="large"
-            onClick={handleSubmit}
-            disabled={loading || !isPhoneLengthValid(phone) || !displayName.trim() || !acceptedTerms}
-            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : undefined}
+        {envelopeStage !== 'opened' ? (
+          <Box
+            className={`invitation-cover ${envelopeStage === 'opening' ? 'invitation-cover--opening' : ''}`}
+            onClick={handleOpenEnvelope}
+            role="button"
+            tabIndex={0}
+            aria-label="Abrir convite de casamento de Gustavo e Maria Luiza"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleOpenEnvelope();
+              }
+            }}
           >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </Button>
-          </CardContent>
-        </Card>
+            <Box
+              component="img"
+              src={molduraBgImg}
+              alt=""
+              aria-hidden="true"
+              className="invitation-cover__bg"
+            />
+            <Box
+              component="img"
+              src={molduraImg}
+              alt=""
+              aria-hidden="true"
+              className="invitation-cover__wreath"
+            />
+
+            <Box className="invitation-cover__content">
+              <Typography className="invitation-cover__eyebrow">
+                Save the Date
+              </Typography>
+              <Typography className="invitation-cover__monogram">
+                G &amp; M
+              </Typography>
+              <Typography className="invitation-cover__names">
+                Gustavo &amp; Maria Luiza
+              </Typography>
+              <Typography className="invitation-cover__date">
+                10 . 10 . 2026
+              </Typography>
+
+              <Button
+                variant="contained"
+                size="large"
+                className="invitation-seal-btn"
+                startIcon={<FavoriteBorderIcon sx={{ fontSize: '1.05rem !important' }} />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenEnvelope();
+                }}
+              >
+                Abrir Convite
+              </Button>
+            </Box>
+          </Box>
+        ) : (
+          <Box className="save-date-card-wrapper">
+            <Card
+              elevation={0}
+              className={`save-date-login-card ${isExitingSuccess ? 'save-date-login-card--success' : ''}`}
+            >
+              <Box
+                component="img"
+                src={molduraImg}
+                alt=""
+                aria-hidden="true"
+                className="save-date-login-card__watermark"
+              />
+
+              <CardContent sx={{ p: { xs: 3, sm: 4 }, '&:last-child': { pb: { xs: 3, sm: 4 } } }}>
+                <Box className="save-date-stagger-item" style={staggerStyle(1)}>
+                  <Box className="save-date-crest" aria-hidden="true">
+                    G&amp;M
+                  </Box>
+                  <Typography variant="h4" sx={{ mb: 0.75, fontWeight: 400 }}>
+                    Bem-vindo(a)!
+                  </Typography>
+                </Box>
+
+                <Box className="save-date-stagger-item" style={staggerStyle(2)}>
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                    Informe seus dados para acessar a área exclusiva do convidado.
+                  </Typography>
+                </Box>
+
+                {error && (
+                  <Alert severity="error" sx={{ mb: 2, borderRadius: 3 }}>
+                    {error}
+                  </Alert>
+                )}
+
+                <Box className="save-date-stagger-item" style={staggerStyle(3)}>
+                  <TextField
+                    fullWidth
+                    label="Seu nome ou apelido"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    sx={{ mb: 2 }}
+                    className="save-date-input"
+                    inputRef={nameInputRef}
+                    autoFocus
+                  />
+                </Box>
+
+                <Box className="save-date-stagger-item" style={staggerStyle(4)}>
+                  <TextField
+                    fullWidth
+                    label="Telefone (WhatsApp)"
+                    type="tel"
+                    inputMode="numeric"
+                    value={phone}
+                    onChange={(e) => setPhone(maskPhone(e.target.value))}
+                    placeholder="11 99999-9999"
+                    sx={{ mb: 2 }}
+                    className="save-date-input"
+                    autoComplete="tel"
+                  />
+                </Box>
+
+                <Box className="save-date-stagger-item" style={staggerStyle(5)}>
+                  <Divider sx={{ mb: 2 }} />
+
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label={
+                      <Typography variant="body2">
+                        Aceito que meus dados sejam usados para organização do evento e confirmação de presença.
+                      </Typography>
+                    }
+                    sx={{ mb: 3, alignItems: 'flex-start', textAlign: 'left' }}
+                  />
+                </Box>
+
+                <Box className="save-date-stagger-item" style={staggerStyle(6)}>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    onClick={handleSubmit}
+                    className="save-date-submit-btn"
+                    disabled={loading || isExitingSuccess || !isPhoneLengthValid(phone) || !displayName.trim() || !acceptedTerms}
+                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : undefined}
+                  >
+                    {loading || isExitingSuccess ? 'Abrindo convite...' : 'Entrar'}
+                  </Button>
+
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={handleReplayEnvelope}
+                    startIcon={<AutoAwesomeIcon sx={{ fontSize: '0.95rem !important' }} />}
+                    className="save-date-replay-btn"
+                  >
+                    Ver capa do convite
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
+        )}
       </Box>
     </GuestLayout>
   );

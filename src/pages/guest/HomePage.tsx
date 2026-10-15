@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { type CSSProperties } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Alert, Box, Button, Chip, CircularProgress, GlobalStyles, Stack, Typography,
@@ -8,10 +8,15 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { getMe } from '../../api/guestApi';
 import { EVENT_LOCATIONS } from '../../api/locationsApi';
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
+import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import saveTheDateImage from '../../assets/home2.png';
 import ceremonyImage from '../../assets/local_cerimonia_casamento.png';
 import partyImage from '../../assets/local_festa_casamento.png';
 import './HomePage.css';
+
+function staggerIndex(index: number): CSSProperties {
+  return { '--stagger-index': index } as CSSProperties;
+}
 
 const locationImages: Record<string, string> = {
   cerimonia: ceremonyImage,
@@ -31,7 +36,7 @@ const rsvpColor: Record<string, 'primary' | 'secondary' | 'info'> = {
 };
 
 export default function GuestHomePage() {
-  const navigate = useNavigate();
+  const navigate = useAnimatedNavigate();
   const { guest } = useGuestAuth();
   const { data, isLoading, isError } = useQuery({
     queryKey: ['guest', 'me'],
@@ -77,53 +82,61 @@ export default function GuestHomePage() {
           </Box>
 
           <Box className="save-date-panel">
-            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }} className="save-date-badges">
+            <Stack
+              direction="row"
+              spacing={1}
+              useFlexGap
+              sx={{ flexWrap: 'wrap' }}
+              className="save-date-badges home-stagger-item"
+              style={staggerIndex(1)}
+            >
               <Chip label={eventTitle} className="save-date-chip save-date-chip--soft" />
               {rsvpStatus && (
                 <Chip
                   label={rsvpLabel[rsvpStatus] ?? rsvpStatus}
                   color={rsvpColor[rsvpStatus] ?? 'default'}
-                  className="save-date-chip"
+                  className="save-date-chip save-date-chip--rsvp"
                 />
               )}
             </Stack>
 
-            <Typography className="save-date-eyebrow">
+            <Typography className="save-date-eyebrow home-stagger-item" style={staggerIndex(2)}>
               {guestName ? `Olá, ${guestName}` : 'Você está convidado(a)'}
             </Typography>
 
-            <Typography className="save-date-title">
+            <Typography className="save-date-title home-stagger-item" style={staggerIndex(3)}>
               {coupleNames ?? 'Reserve esta data para celebrar conosco'}
             </Typography>
 
-            <Typography className="save-date-description">
+            <Typography className="save-date-description home-stagger-item" style={staggerIndex(4)}>
               Uma prévia do nosso grande dia. Explore sua confirmação, lista de presentes, galeria e mural a partir desta página.
             </Typography>
 
             {isLoading && (
-              <Box className="save-date-inlineStatus">
+              <Box className="save-date-inlineStatus home-stagger-item" style={staggerIndex(4)}>
                 <CircularProgress size={20} color="inherit" />
                 <Typography variant="body2">Carregando seus detalhes do convite...</Typography>
               </Box>
             )}
 
             {isError && (
-              <Alert severity="warning" sx={{ borderRadius: 3 }}>
+              <Alert severity="warning" sx={{ borderRadius: 3, mt: 2 }}>
                 Não foi possível carregar seus dados agora. Você ainda pode navegar pelas demais áreas.
               </Alert>
             )}
 
             {rsvpDeadline && (
-              <Typography className="save-date-meta">
+              <Typography className="save-date-meta home-stagger-item" style={staggerIndex(5)}>
                 RSVP até {rsvpDeadline}
               </Typography>
             )}
 
-            <Stack spacing={1.5} className="save-date-actions">
+            <Stack spacing={1.5} className="save-date-actions home-stagger-item" style={staggerIndex(6)}>
               <Button
                 variant="contained"
                 size="large"
-                onClick={() => navigate('/minha-familia')}
+                onClick={() => navigate('/minha-familia', { direction: 'forward' })}
+                className="save-date-primary-cta"
                 sx={{ borderRadius: 999, py: 1.5 }}
               >
                 {rsvpStatus === 'PENDING' ? 'Confirmar presença' : 'Ver confirmação'}
@@ -134,7 +147,8 @@ export default function GuestHomePage() {
                   variant="outlined"
                   size="large"
                   fullWidth
-                  onClick={() => navigate('/presentes')}
+                  onClick={() => navigate('/presentes', { direction: 'forward' })}
+                  className="save-date-secondary-cta"
                   sx={{ borderRadius: 999, py: 1.5 }}
                 >
                   Presentes
@@ -143,7 +157,8 @@ export default function GuestHomePage() {
                   variant="outlined"
                   size="large"
                   fullWidth
-                  onClick={() => navigate('/galeria')}
+                  onClick={() => navigate('/galeria', { direction: 'forward' })}
+                  className="save-date-secondary-cta"
                   sx={{ borderRadius: 999, py: 1.5 }}
                 >
                   Galeria
@@ -152,7 +167,8 @@ export default function GuestHomePage() {
                   variant="outlined"
                   size="large"
                   fullWidth
-                  onClick={() => navigate('/mural')}
+                  onClick={() => navigate('/mural', { direction: 'forward' })}
+                  className="save-date-secondary-cta"
                   sx={{ borderRadius: 999, py: 1.5 }}
                 >
                   Mural
@@ -161,7 +177,7 @@ export default function GuestHomePage() {
             </Stack>
 
             {/* ─── Localização ─────────────────────────────────────────── */}
-            <Box className="location-section">
+            <Box className="location-section home-stagger-item" style={staggerIndex(7)}>
               <Typography
                 className="location-heading"
                 sx={{
@@ -176,7 +192,7 @@ export default function GuestHomePage() {
               </Typography>
 
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2.5, sm: 2 }} className="location-cards">
-                {EVENT_LOCATIONS.map((loc) => (
+                {EVENT_LOCATIONS.map((loc, idx) => (
                   <Box
                     key={loc.id}
                     component="a"
@@ -184,14 +200,17 @@ export default function GuestHomePage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="location-card"
+                    style={staggerIndex(8 + idx)}
                     aria-label={`Ver ${loc.label} no Google Maps`}
                   >
-                    <Box
-                      component="img"
-                      src={locationImages[loc.id]}
-                      alt={`Local da ${loc.label} – ${loc.subtitle}`}
-                      className="location-card__img"
-                    />
+                    <Box className="location-card__imgWrap">
+                      <Box
+                        component="img"
+                        src={locationImages[loc.id]}
+                        alt={`Local da ${loc.label} – ${loc.subtitle}`}
+                        className="location-card__img"
+                      />
+                    </Box>
                     <Box className="location-card__body">
                       <Typography className="location-card__label" sx={{ fontSize: { xs: '1.3rem', sm: '1.15rem' } }}>
                         {loc.label}

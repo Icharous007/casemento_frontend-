@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Button, ToggleButton, ToggleButtonGroup,
@@ -11,6 +10,7 @@ import { getMe } from '../../api/guestApi';
 import { submitRsvp } from '../../api/rsvpApi';
 import GuestLayout from './GuestLayout';
 import { getApiErrorData } from '../../utils/apiError';
+import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 
 const rsvpPanelSx = {
   border: '1px solid rgba(181, 154, 199, 0.20)',
@@ -21,7 +21,7 @@ const rsvpPanelSx = {
 };
 
 export default function GuestRsvpPage() {
-  const navigate = useNavigate();
+  const navigate = useAnimatedNavigate();
   const qc = useQueryClient();
 
   const { data: me, isLoading } = useQuery({ queryKey: ['guest', 'me'], queryFn: getMe });
@@ -43,7 +43,7 @@ export default function GuestRsvpPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['guest', 'me'] });
       setSuccess(true);
-      setTimeout(() => navigate('/home'), 10000);
+      setTimeout(() => navigate('/home', { direction: 'back' }), 10000);
     },
   });
 
@@ -203,7 +203,7 @@ export default function GuestRsvpPage() {
       <Button
         variant="text"
         fullWidth
-        onClick={() => navigate('/home')}
+        onClick={() => navigate('/home', { direction: 'back' })}
         sx={{ mt: 1 }}
       >
         Voltar

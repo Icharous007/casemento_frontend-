@@ -1,0 +1,357 @@
+/* ─── Save The Date / Guest Login: The Unveil Ritual ────────────────────── */
+
+.invitation-scene {
+  position: relative;
+  min-height: calc(100svh - 140px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  padding: 8px 0 24px;
+}
+
+/* Ambient floating petals / light orbs behind the card */
+.invitation-ambient-glow {
+  position: absolute;
+  width: min(92vw, 440px);
+  height: min(92vw, 440px);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(125, 152, 218, 0.22) 0%,
+    rgba(181, 154, 199, 0.18) 45%,
+    rgba(255, 248, 245, 0) 72%
+  );
+  filter: blur(28px);
+  pointer-events: none;
+  z-index: 0;
+  animation: floatSlow 7s ease-in-out infinite;
+}
+
+/* ─── Stage 1: Closed Floral Envelope Cover ─────────────────────────────── */
+
+.invitation-cover {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 430px);
+  min-height: 520px;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid rgba(181, 154, 199, 0.32);
+  background-color: #fffdfb;
+  box-shadow:
+    0 24px 58px rgba(109, 86, 145, 0.18),
+    0 4px 16px rgba(125, 152, 218, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 28px;
+  box-sizing: border-box;
+  cursor: pointer;
+  user-select: none;
+  transform-style: preserve-3d;
+  animation: blurToClear 780ms var(--ease-editorial) both;
+  transition:
+    transform 520ms var(--ease-editorial),
+    box-shadow 520ms var(--ease-editorial),
+    opacity 560ms var(--ease-editorial),
+    filter 560ms var(--ease-editorial);
+}
+
+.invitation-cover:hover {
+  transform: translateY(-4px) scale(1.008);
+  box-shadow:
+    0 30px 68px rgba(109, 86, 145, 0.24),
+    0 8px 22px rgba(125, 152, 218, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.invitation-cover--opening {
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(1.09) translateY(-10px);
+  filter: blur(12px);
+}
+
+.invitation-cover__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.55;
+  pointer-events: none;
+  transition: transform 900ms var(--ease-editorial);
+}
+
+.invitation-cover:hover .invitation-cover__bg {
+  transform: scale(1.04);
+}
+
+.invitation-cover__wreath {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 10px;
+  box-sizing: border-box;
+  pointer-events: none;
+  animation: floatSlow 6.5s ease-in-out infinite;
+  transition:
+    transform 680ms var(--ease-editorial),
+    opacity 580ms var(--ease-editorial);
+}
+
+.invitation-cover--opening .invitation-cover__wreath {
+  transform: scale(1.16) rotate(2deg);
+  opacity: 0;
+}
+
+.invitation-cover__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 250px;
+  padding: 20px 12px;
+  border-radius: 24px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 253, 251, 0.88) 20%,
+    rgba(255, 253, 251, 0.55) 70%,
+    rgba(255, 253, 251, 0) 100%
+  );
+}
+
+.invitation-cover__eyebrow {
+  font-family: 'Manrope', 'Segoe UI', sans-serif !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.28em !important;
+  text-transform: uppercase;
+  color: rgba(109, 86, 145, 0.82);
+  margin-bottom: 6px !important;
+}
+
+.invitation-cover__monogram {
+  font-family: 'Lavishly Yours', cursive !important;
+  font-size: clamp(3.4rem, 9vw, 4.4rem) !important;
+  line-height: 1 !important;
+  color: #4b3f5d;
+  text-shadow: 0 4px 18px rgba(181, 154, 199, 0.35);
+  margin: 4px 0 !important;
+}
+
+.invitation-cover__names {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  color: #4b3f5d;
+  margin-top: 2px !important;
+}
+
+.invitation-cover__date {
+  font-family: 'Manrope', 'Segoe UI', sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.32em !important;
+  color: rgba(75, 63, 93, 0.72);
+  margin: 10px 0 22px !important;
+}
+
+.invitation-seal-btn {
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px !important;
+  padding: 10px 26px !important;
+  font-family: 'Manrope', 'Segoe UI', sans-serif !important;
+  font-size: 0.86rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  background: linear-gradient(135deg, #7d98da 0%, #9b8ec7 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(125, 152, 218, 0.34);
+  animation: softGlowPulse 3.2s infinite ease-in-out;
+  transition:
+    transform 0.28s var(--ease-editorial),
+    box-shadow 0.28s var(--ease-editorial) !important;
+}
+
+.invitation-seal-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.38) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmerSweep 4.2s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.invitation-seal-btn:hover {
+  transform: scale(1.04);
+}
+
+/* ─── Stage 2 & 3: Revealed Guest Login Card ────────────────────────────── */
+
+.save-date-card-wrapper {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 460px);
+  margin: 0 auto;
+}
+
+.save-date-login-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(181, 154, 199, 0.26) !important;
+  border-radius: 32px !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 253, 251, 0.96) 0%,
+    rgba(235, 224, 246, 0.90) 100%
+  ) !important;
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 22px 54px rgba(128, 102, 167, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+  animation: blurToClear 680ms var(--ease-editorial) both;
+  transition:
+    transform 480ms var(--ease-editorial),
+    opacity 480ms var(--ease-editorial),
+    filter 480ms var(--ease-editorial),
+    box-shadow 480ms var(--ease-editorial) !important;
+}
+
+/* Subtle decorative floral watermark at top of login card */
+.save-date-login-card__watermark {
+  position: absolute;
+  top: -64px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  height: 280px;
+  object-fit: contain;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Celebration exit animation before navigating to /home */
+.save-date-login-card--success {
+  transform: scale(1.03) translateY(-6px);
+  opacity: 0;
+  filter: blur(6px);
+  box-shadow: 0 32px 72px rgba(125, 152, 218, 0.32) !important;
+}
+
+.save-date-stagger-item {
+  position: relative;
+  z-index: 1;
+  animation: staggerFadeUp 620ms var(--ease-editorial) both;
+  animation-delay: calc(var(--stagger-step, 0) * 75ms + 80ms);
+}
+
+.save-date-crest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, rgba(125, 152, 218, 0.16), rgba(181, 154, 199, 0.22));
+  border: 1px solid rgba(181, 154, 199, 0.35);
+  font-family: 'Lavishly Yours', cursive;
+  font-size: 1.75rem;
+  color: #4b3f5d;
+  box-shadow: 0 6px 18px rgba(128, 102, 167, 0.12);
+}
+
+/* Elegant input focus halo */
+.save-date-input .MuiOutlinedInput-root {
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.72);
+  transition:
+    background-color 0.25s var(--ease-editorial),
+    box-shadow 0.25s var(--ease-editorial),
+    transform 0.25s var(--ease-editorial);
+}
+
+.save-date-input .MuiOutlinedInput-root:hover {
+  background-color: rgba(255, 255, 255, 0.92);
+}
+
+.save-date-input .MuiOutlinedInput-root.Mui-focused {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(125, 152, 218, 0.20), 0 8px 20px rgba(128, 102, 167, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Primary submit button with shimmer when active */
+.save-date-submit-btn {
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px !important;
+  padding-top: 13px !important;
+  padding-bottom: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  transition:
+    transform 0.28s var(--ease-editorial),
+    box-shadow 0.28s var(--ease-editorial),
+    background-color 0.28s var(--ease-editorial) !important;
+}
+
+.save-date-submit-btn:not(:disabled) {
+  background: linear-gradient(135deg, #7d98da 0%, #8f8bc9 100%) !important;
+  box-shadow: 0 12px 28px rgba(125, 152, 218, 0.32) !important;
+}
+
+.save-date-submit-btn:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.34) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmerSweep 4.5s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.save-date-submit-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(125, 152, 218, 0.42) !important;
+}
+
+.save-date-replay-btn {
+  margin-top: 14px !important;
+  font-size: 0.8rem !important;
+  color: rgba(75, 63, 93, 0.62) !important;
+  letter-spacing: 0.04em !important;
+}
+
+.save-date-replay-btn:hover {
+  color: #4b3f5d !important;
+  background: rgba(181, 154, 199, 0.12) !important;
+}

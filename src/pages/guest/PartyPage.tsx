@@ -22,7 +22,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ChildCareIcon from '@mui/icons-material/ChildCare';
 import PersonIcon from '@mui/icons-material/Person';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   listPartyMembers,
@@ -35,6 +34,7 @@ import {
 import GuestLayout from './GuestLayout';
 import { getApiErrorData } from '../../utils/apiError';
 import { maskPhone, unmaskPhone, isPhoneLengthValid } from '../../utils/phoneMask';
+import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 
 const ERROR_MESSAGES: Record<string, string> = {
   GUEST_ALREADY_HAS_ACCESS:
@@ -67,7 +67,7 @@ type RsvpDraft = {
 };
 
 export default function PartyPage() {
-  const navigate = useNavigate();
+  const navigate = useAnimatedNavigate();
   const qc = useQueryClient();
 
   // Data fetching
@@ -256,7 +256,7 @@ export default function PartyPage() {
         </Alert>
       )}
 
-      <Button variant="text" onClick={() => navigate('/home')} sx={{ mb: 2 }}>
+      <Button variant="text" onClick={() => navigate('/home', { direction: 'back' })} sx={{ mb: 2 }}>
         Voltar para Home
       </Button>
 

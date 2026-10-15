@@ -1,0 +1,249 @@
+/* ─── Luxury Wedding Motion Tokens & Global Transitions ─────────────────── */
+
+:root {
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.45, 0, 0.25, 1);
+  --ease-soft-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── Keyframes ─────────────────────────────────────────────────────────── */
+
+@keyframes vtFadeOutScaleUp {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.045);
+    filter: blur(10px);
+  }
+}
+
+@keyframes vtHomeGrandReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.965) translateY(14px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes vtForwardOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98) translateY(-14px);
+    filter: blur(4px);
+  }
+}
+
+@keyframes vtForwardIn {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.99);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes vtBackOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+    filter: blur(4px);
+  }
+}
+
+@keyframes vtBackIn {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.985);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes staggerFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes blurToClear {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.96);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes floatSlow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-140%) skewX(-20deg);
+  }
+  38%,
+  100% {
+    transform: translateX(220%) skewX(-20deg);
+  }
+}
+
+@keyframes heartPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.22);
+  }
+  55% {
+    transform: scale(0.95);
+  }
+  75% {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes softGlowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(125, 152, 218, 0.32), 0 12px 28px rgba(120, 95, 160, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(125, 152, 218, 0), 0 16px 34px rgba(120, 95, 160, 0.28);
+  }
+}
+
+/* ─── View Transitions API Choreography ─────────────────────────────────── */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--ease-editorial);
+  animation-fill-mode: both;
+}
+
+/* 1. Login -> Home: Grand Unveil */
+html[data-vt-direction='login-to-home']::view-transition-old(root) {
+  animation: vtFadeOutScaleUp 620ms var(--ease-editorial) both;
+}
+
+html[data-vt-direction='login-to-home']::view-transition-new(root) {
+  animation: vtHomeGrandReveal 760ms var(--ease-editorial) 80ms both;
+}
+
+/* 2. Forward Navigation (Home -> Subpages) */
+html[data-vt-direction='forward']::view-transition-old(root) {
+  animation: vtForwardOut 420ms var(--ease-editorial) both;
+}
+
+html[data-vt-direction='forward']::view-transition-new(root) {
+  animation: vtForwardIn 520ms var(--ease-editorial) 40ms both;
+}
+
+/* 3. Back Navigation (Subpages -> Home) */
+html[data-vt-direction='back']::view-transition-old(root) {
+  animation: vtBackOut 400ms var(--ease-editorial) both;
+}
+
+html[data-vt-direction='back']::view-transition-new(root) {
+  animation: vtBackIn 500ms var(--ease-editorial) 30ms both;
+}
+
+/* Keep the Guest AppBar anchored smoothly across subpage transitions */
+.guest-appbar-transition {
+  view-transition-name: guest-appbar;
+}
+
+/* Content enter animation for GuestLayout subpages (also serves as fallback) */
+.guest-page-content-enter {
+  animation: staggerFadeUp 520ms var(--ease-editorial) both;
+}
+
+.guest-header-heart {
+  display: inline-flex;
+  animation: heartPulse 2.4s var(--ease-in-out-soft) 0.3s 2;
+}
+
+.guest-home-btn {
+  transition:
+    background-color 0.25s var(--ease-editorial),
+    transform 0.25s var(--ease-editorial),
+    box-shadow 0.25s var(--ease-editorial) !important;
+}
+
+.guest-home-btn:hover {
+  transform: translateX(-2px);
+  box-shadow: 0 6px 18px rgba(128, 102, 167, 0.14);
+}
+
+.guest-home-btn .MuiButton-startIcon {
+  transition: transform 0.25s var(--ease-editorial);
+}
+
+.guest-home-btn:hover .MuiButton-startIcon {
+  transform: translateX(-2px);
+}
+
+/* ─── Accessibility: Reduced Motion ─────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms !important;
+  }
+}
