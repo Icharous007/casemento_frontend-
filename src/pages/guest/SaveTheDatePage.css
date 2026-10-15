@@ -1,14 +1,167 @@
-/* ─── Save The Date / Guest Login: The Unveil Ritual ────────────────────── */
+/* ─── Save The Date / Guest Login: 3.6s 4-Act Gatefold Unveil Ritual ────── */
+
+@keyframes sealPressAndUnbind {
+  0% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  20% {
+    /* Tactile wax seal press down */
+    transform: scale(0.92) translateZ(-12px);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  48% {
+    /* Seal lifts and radiates light */
+    transform: scale(1.06) translateZ(24px);
+    opacity: 0.92;
+    filter: blur(1px);
+  }
+  100% {
+    /* Medallion dissolves into light as doors swing open */
+    transform: scale(1.16) translateY(-18px) translateZ(48px);
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+
+@keyframes sealRingBurst {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes seamLightReveal {
+  0%,
+  12% {
+    opacity: 0;
+    transform: scaleY(0.15) scaleX(0.5);
+  }
+  38% {
+    opacity: 1;
+    transform: scaleY(1) scaleX(1.3);
+  }
+  75% {
+    opacity: 0.65;
+    transform: scaleY(1.05) scaleX(2.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(1.1) scaleX(3.2);
+  }
+}
+
+@keyframes gateOpenLeft {
+  0%,
+  16% {
+    transform: perspective(1500px) rotateY(0deg) translateX(0) scale(1);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  42% {
+    /* Doors begin parting slightly with tension */
+    transform: perspective(1500px) rotateY(-18deg) translateX(-4%) scale(1.01);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  82% {
+    /* Wide 3D French gatefold swing */
+    transform: perspective(1500px) rotateY(-68deg) translateX(-34%) scale(1.04);
+    opacity: 0.42;
+    filter: blur(4px);
+  }
+  100% {
+    transform: perspective(1500px) rotateY(-82deg) translateX(-48%) scale(1.06);
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+
+@keyframes gateOpenRight {
+  0%,
+  16% {
+    transform: perspective(1500px) rotateY(0deg) translateX(0) scale(1);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  42% {
+    transform: perspective(1500px) rotateY(18deg) translateX(4%) scale(1.01);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  82% {
+    transform: perspective(1500px) rotateY(68deg) translateX(34%) scale(1.04);
+    opacity: 0.42;
+    filter: blur(4px);
+  }
+  100% {
+    transform: perspective(1500px) rotateY(82deg) translateX(48%) scale(1.06);
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+
+@keyframes innerLetterEmerge {
+  0%,
+  26% {
+    opacity: 0;
+    transform: translateY(38px) scale(0.88) translateZ(-60px);
+    filter: blur(12px);
+  }
+  62% {
+    opacity: 0.88;
+    transform: translateY(10px) scale(0.965) translateZ(-12px);
+    filter: blur(3px);
+  }
+  88% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.004) translateZ(0);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) translateZ(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes sparkleFloat {
+  0%,
+  18% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.3);
+  }
+  48% {
+    opacity: 0.9;
+    transform: translateY(-18px) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-68px) scale(0.4);
+  }
+}
 
 .invitation-scene {
   position: relative;
   min-height: calc(100svh - 140px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  perspective: 1200px;
+  display: grid;
+  place-items: center;
+  perspective: 1500px;
   padding: 8px 0 24px;
+}
+
+.invitation-scene > * {
+  grid-area: 1 / 1;
 }
 
 /* Ambient floating petals / light orbs behind the card */
@@ -19,31 +172,30 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(125, 152, 218, 0.22) 0%,
-    rgba(181, 154, 199, 0.18) 45%,
+    rgba(125, 152, 218, 0.24) 0%,
+    rgba(181, 154, 199, 0.20) 45%,
     rgba(255, 248, 245, 0) 72%
   );
   filter: blur(28px);
   pointer-events: none;
   z-index: 0;
   animation: floatSlow 7s ease-in-out infinite;
+  transition: transform 2.4s var(--ease-editorial), opacity 2.4s var(--ease-editorial);
 }
 
-/* ─── Stage 1: Closed Floral Envelope Cover ─────────────────────────────── */
+.invitation-scene--opening .invitation-ambient-glow {
+  transform: scale(1.28);
+  opacity: 0.95;
+}
+
+/* ─── Stage 1: Closed & Opening 3D Gatefold Envelope Cover ──────────────── */
 
 .invitation-cover {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   width: min(100%, 430px);
   min-height: 520px;
   border-radius: 32px;
-  overflow: hidden;
-  border: 1px solid rgba(181, 154, 199, 0.32);
-  background-color: #fffdfb;
-  box-shadow:
-    0 24px 58px rgba(109, 86, 145, 0.18),
-    0 4px 16px rgba(125, 152, 218, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -53,45 +205,89 @@
   cursor: pointer;
   user-select: none;
   transform-style: preserve-3d;
-  animation: blurToClear 780ms var(--ease-editorial) both;
+  animation: blurToClear 900ms var(--ease-editorial) both;
   transition:
-    transform 520ms var(--ease-editorial),
-    box-shadow 520ms var(--ease-editorial),
-    opacity 560ms var(--ease-editorial),
-    filter 560ms var(--ease-editorial);
+    transform 650ms var(--ease-editorial),
+    box-shadow 650ms var(--ease-editorial);
 }
 
-.invitation-cover:hover {
-  transform: translateY(-4px) scale(1.008);
-  box-shadow:
-    0 30px 68px rgba(109, 86, 145, 0.24),
-    0 8px 22px rgba(125, 152, 218, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+.invitation-cover:not(.invitation-cover--opening):hover {
+  transform: translateY(-5px) scale(1.008);
 }
 
 .invitation-cover--opening {
   pointer-events: none;
-  opacity: 0;
-  transform: scale(1.09) translateY(-10px);
-  filter: blur(12px);
 }
 
-.invitation-cover__bg {
+/* Left & Right Gatefold Doors */
+.invitation-gate {
+  position: absolute;
+  inset: 0;
+  border-radius: 32px;
+  overflow: hidden;
+  background-color: #fffdfb;
+  border: 1px solid rgba(181, 154, 199, 0.34);
+  box-shadow:
+    0 24px 58px rgba(109, 86, 145, 0.18),
+    0 4px 16px rgba(125, 152, 218, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  backface-visibility: hidden;
+  will-change: transform, opacity, filter;
+}
+
+.invitation-gate--left {
+  clip-path: polygon(0 0, 50.4% 0, 50.4% 100%, 0 100%);
+  transform-origin: left center;
+}
+
+.invitation-gate--right {
+  clip-path: polygon(49.6% 0, 100% 0, 100% 100%, 49.6% 100%);
+  transform-origin: right center;
+}
+
+/* Subtle paper seam shadow down the center of the gatefold */
+.invitation-gate__edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    rgba(181, 154, 199, 0) 0%,
+    rgba(181, 154, 199, 0.35) 20%,
+    rgba(125, 152, 218, 0.42) 50%,
+    rgba(181, 154, 199, 0.35) 80%,
+    rgba(181, 154, 199, 0) 100%
+  );
+  opacity: 0.7;
+}
+
+.invitation-cover--opening .invitation-gate--left {
+  animation: gateOpenLeft 3100ms cubic-bezier(0.22, 0.68, 0.18, 1) 240ms forwards;
+}
+
+.invitation-cover--opening .invitation-gate--right {
+  animation: gateOpenRight 3100ms cubic-bezier(0.22, 0.68, 0.18, 1) 240ms forwards;
+}
+
+.invitation-gate__bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.55;
-  pointer-events: none;
-  transition: transform 900ms var(--ease-editorial);
+  opacity: 0.56;
+  transition: transform 1100ms var(--ease-editorial);
 }
 
-.invitation-cover:hover .invitation-cover__bg {
+.invitation-cover:not(.invitation-cover--opening):hover .invitation-gate__bg {
   transform: scale(1.04);
 }
 
-.invitation-cover__wreath {
+.invitation-gate__wreath {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -99,34 +295,99 @@
   object-fit: contain;
   padding: 10px;
   box-sizing: border-box;
-  pointer-events: none;
   animation: floatSlow 6.5s ease-in-out infinite;
-  transition:
-    transform 680ms var(--ease-editorial),
-    opacity 580ms var(--ease-editorial);
 }
 
-.invitation-cover--opening .invitation-cover__wreath {
-  transform: scale(1.16) rotate(2deg);
+/* Luminous seam glow when the two doors part */
+.invitation-seam-glow {
+  position: absolute;
+  top: 6%;
+  bottom: 6%;
+  left: 50%;
+  width: 26px;
+  margin-left: -13px;
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(169, 200, 234, 0.75) 42%,
+    rgba(181, 154, 199, 0) 100%
+  );
+  filter: blur(8px);
   opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.invitation-cover--opening .invitation-seam-glow {
+  animation: seamLightReveal 2400ms var(--ease-editorial) 180ms forwards;
+}
+
+/* Floating luminous particles during opening */
+.invitation-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.invitation-sparkle {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 20%, #a9c8ea 70%, transparent 100%);
+  box-shadow: 0 0 12px rgba(125, 152, 218, 0.8);
+  opacity: 0;
+}
+
+.invitation-sparkle--1 { top: 45%; left: 32%; }
+.invitation-sparkle--2 { top: 52%; left: 66%; width: 9px; height: 9px; }
+.invitation-sparkle--3 { top: 38%; left: 54%; width: 6px; height: 6px; }
+.invitation-sparkle--4 { top: 60%; left: 38%; width: 8px; height: 8px; }
+.invitation-sparkle--5 { top: 34%; left: 42%; }
+.invitation-sparkle--6 { top: 58%; left: 60%; width: 6px; height: 6px; }
+
+.invitation-cover--opening .invitation-sparkle--1 {
+  animation: sparkleFloat 2400ms var(--ease-editorial) 350ms forwards;
+}
+.invitation-cover--opening .invitation-sparkle--2 {
+  animation: sparkleFloat 2600ms var(--ease-editorial) 520ms forwards;
+}
+.invitation-cover--opening .invitation-sparkle--3 {
+  animation: sparkleFloat 2300ms var(--ease-editorial) 680ms forwards;
+}
+.invitation-cover--opening .invitation-sparkle--4 {
+  animation: sparkleFloat 2700ms var(--ease-editorial) 440ms forwards;
+}
+.invitation-cover--opening .invitation-sparkle--5 {
+  animation: sparkleFloat 2500ms var(--ease-editorial) 760ms forwards;
+}
+.invitation-cover--opening .invitation-sparkle--6 {
+  animation: sparkleFloat 2400ms var(--ease-editorial) 600ms forwards;
 }
 
 .invitation-cover__content {
   position: relative;
-  z-index: 1;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  max-width: 250px;
-  padding: 20px 12px;
-  border-radius: 24px;
+  max-width: 260px;
+  padding: 22px 16px;
+  border-radius: 28px;
   background: radial-gradient(
     circle,
-    rgba(255, 253, 251, 0.88) 20%,
-    rgba(255, 253, 251, 0.55) 70%,
+    rgba(255, 253, 251, 0.94) 28%,
+    rgba(255, 253, 251, 0.72) 72%,
     rgba(255, 253, 251, 0) 100%
   );
+  will-change: transform, opacity, filter;
+}
+
+.invitation-cover--opening .invitation-cover__content {
+  animation: sealPressAndUnbind 1650ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .invitation-cover__eyebrow {
@@ -164,6 +425,26 @@
   letter-spacing: 0.32em !important;
   color: rgba(75, 63, 93, 0.72);
   margin: 10px 0 22px !important;
+}
+
+.invitation-seal-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invitation-seal-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(125, 152, 218, 0.55);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.invitation-cover--opening .invitation-seal-ring {
+  animation: sealRingBurst 1200ms var(--ease-out-expo) forwards;
 }
 
 .invitation-seal-btn {
@@ -206,13 +487,29 @@
   transform: scale(1.04);
 }
 
-/* ─── Stage 2 & 3: Revealed Guest Login Card ────────────────────────────── */
+/* ─── Stage 2 & 3: Inner Letter / Guest Login Card ──────────────────────── */
 
 .save-date-card-wrapper {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: min(100%, 460px);
   margin: 0 auto;
+  transform-style: preserve-3d;
+}
+
+.save-date-card-wrapper--emerging {
+  pointer-events: none;
+  animation: innerLetterEmerge 3400ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+.save-date-card-wrapper--emerging .save-date-login-card {
+  animation: none;
+}
+
+/* During the slow 3.6s gatefold opening, stagger the inner card items starting at ~1.65s */
+.save-date-card-wrapper--emerging .save-date-stagger-item {
+  animation: staggerFadeUp 950ms var(--ease-editorial) both;
+  animation-delay: calc(1550ms + var(--stagger-step, 0) * 190ms);
 }
 
 .save-date-login-card {

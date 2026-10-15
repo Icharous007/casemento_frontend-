@@ -16,18 +16,7 @@ import molduraImg from '../../assets/moldura.png';
 import molduraBgImg from '../../assets/moldura_background.png';
 import './SaveTheDatePage.css';
 
-const ENVELOPE_SESSION_KEY = 'wedding_envelope_opened';
-
 type EnvelopeStage = 'closed' | 'opening' | 'opened';
-
-function getInitialEnvelopeStage(): EnvelopeStage {
-  if (typeof window === 'undefined') return 'closed';
-  try {
-    return window.sessionStorage.getItem(ENVELOPE_SESSION_KEY) === '1' ? 'opened' : 'closed';
-  } catch {
-    return 'closed';
-  }
-}
 
 function staggerStyle(step: number): CSSProperties {
   return { '--stagger-step': step } as CSSProperties;
@@ -64,7 +53,7 @@ export default function SaveTheDatePage() {
 
   const eventSlug = searchParams.get('event') ?? '';
 
-  const [envelopeStage, setEnvelopeStage] = useState<EnvelopeStage>(getInitialEnvelopeStage);
+  const [envelopeStage, setEnvelopeStage] = useState<EnvelopeStage>('closed');
   const [isExitingSuccess, setIsExitingSuccess] = useState(false);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -79,18 +68,13 @@ export default function SaveTheDatePage() {
     if (envelopeStage !== 'closed') return;
     setEnvelopeStage('opening');
 
-    try {
-      window.sessionStorage.setItem(ENVELOPE_SESSION_KEY, '1');
-    } catch {
-      // ignore storage errors
-    }
-
+    // 3.6s cinematic 4-act gatefold unveil before switching to interactive state
     window.setTimeout(() => {
       setEnvelopeStage('opened');
       window.setTimeout(() => {
         nameInputRef.current?.focus();
-      }, 120);
-    }, 520);
+      }, 150);
+    }, 3600);
   }
 
   function handleReplayEnvelope() {
@@ -134,10 +118,11 @@ export default function SaveTheDatePage() {
 
   return (
     <GuestLayout showHomeButton={false}>
-      <Box className="invitation-scene" sx={{ textAlign: 'center' }}>
+      <Box className={`invitation-scene invitation-scene--${envelopeStage}`} sx={{ textAlign: 'center' }}>
         <Box className="invitation-ambient-glow" aria-hidden="true" />
 
-        {envelopeStage !== 'opened' ? (
+        {/* ─── Outer 3D Gatefold / Envelope Cover (visible when closed or opening) ─── */}
+        {envelopeStage !== 'opened' && (
           <Box
             className={`invitation-cover ${envelopeStage === 'opening' ? 'invitation-cover--opening' : ''}`}
             onClick={handleOpenEnvelope}
@@ -151,21 +136,33 @@ export default function SaveTheDatePage() {
               }
             }}
           >
-            <Box
-              component="img"
-              src={molduraBgImg}
-              alt=""
-              aria-hidden="true"
-              className="invitation-cover__bg"
-            />
-            <Box
-              component="img"
-              src={molduraImg}
-              alt=""
-              aria-hidden="true"
-              className="invitation-cover__wreath"
-            />
+            {/* Left & Right 3D Gatefold Doors */}
+            <Box className="invitation-gate invitation-gate--left" aria-hidden="true">
+              <Box component="img" src={molduraBgImg} alt="" className="invitation-gate__bg" />
+              <Box component="img" src={molduraImg} alt="" className="invitation-gate__wreath" />
+              <Box className="invitation-gate__edge" />
+            </Box>
 
+            <Box className="invitation-gate invitation-gate--right" aria-hidden="true">
+              <Box component="img" src={molduraBgImg} alt="" className="invitation-gate__bg" />
+              <Box component="img" src={molduraImg} alt="" className="invitation-gate__wreath" />
+              <Box className="invitation-gate__edge" />
+            </Box>
+
+            {/* Luminous Seam / Light Burst when gates part */}
+            <Box className="invitation-seam-glow" aria-hidden="true" />
+
+            {/* Floating Botanical Sparkles during opening */}
+            <Box className="invitation-sparkles" aria-hidden="true">
+              <span className="invitation-sparkle invitation-sparkle--1" />
+              <span className="invitation-sparkle invitation-sparkle--2" />
+              <span className="invitation-sparkle invitation-sparkle--3" />
+              <span className="invitation-sparkle invitation-sparkle--4" />
+              <span className="invitation-sparkle invitation-sparkle--5" />
+              <span className="invitation-sparkle invitation-sparkle--6" />
+            </Box>
+
+            {/* Center Wax Seal & Monogram Medallion */}
             <Box className="invitation-cover__content">
               <Typography className="invitation-cover__eyebrow">
                 Save the Date
@@ -177,25 +174,37 @@ export default function SaveTheDatePage() {
                 Gustavo &amp; Maria Luiza
               </Typography>
               <Typography className="invitation-cover__date">
-                10 . 10 . 2026
+                30 . 01 . 2027
               </Typography>
 
-              <Button
-                variant="contained"
-                size="large"
-                className="invitation-seal-btn"
-                startIcon={<FavoriteBorderIcon sx={{ fontSize: '1.05rem !important' }} />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenEnvelope();
-                }}
-              >
-                Abrir Convite
-              </Button>
+              <Box className="invitation-seal-wrap">
+                <Box className="invitation-seal-ring" aria-hidden="true" />
+                <Button
+                  variant="contained"
+                  size="large"
+                  className="invitation-seal-btn"
+                  startIcon={<FavoriteBorderIcon sx={{ fontSize: '1.05rem !important' }} />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenEnvelope();
+                  }}
+                >
+                  {envelopeStage === 'opening' ? 'Abrindo convite...' : 'Abrir Convite'}
+                </Button>
+              </Box>
             </Box>
           </Box>
-        ) : (
-          <Box className="save-date-card-wrapper">
+        )}
+
+        {/* ─── Inner Letter / Guest Login Card (emerges from inside during opening) ─── */}
+        {envelopeStage !== 'closed' && (
+          <Box
+            className={`save-date-card-wrapper ${
+              envelopeStage === 'opening'
+                ? 'save-date-card-wrapper--emerging'
+                : 'save-date-card-wrapper--opened'
+            }`}
+          >
             <Card
               elevation={0}
               className={`save-date-login-card ${isExitingSuccess ? 'save-date-login-card--success' : ''}`}
@@ -239,7 +248,7 @@ export default function SaveTheDatePage() {
                     sx={{ mb: 2 }}
                     className="save-date-input"
                     inputRef={nameInputRef}
-                    autoFocus
+                    autoFocus={envelopeStage === 'opened'}
                   />
                 </Box>
 
