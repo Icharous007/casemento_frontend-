@@ -47,7 +47,7 @@ export default function GuestHomePage() {
   const eventTitle = data?.event.title ?? 'Nosso Casamento';
   const coupleNames = data?.event.coupleNames;
   const rsvpStatus = data?.rsvpStatus;
-  const rsvpDeadline = '30/09/2026';
+  const rsvpDeadline = '30/12/2026';
 
   return (
     <>
