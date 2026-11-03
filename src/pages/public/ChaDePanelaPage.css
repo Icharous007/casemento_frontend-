@@ -11,6 +11,10 @@
   --shower-gold: #c79b52;
   --shower-paper: #fffaf0;
   --shower-line: rgba(49, 90, 76, 0.18);
+  --pan-purple: #7754a5;
+  --pan-purple-dark: #52377b;
+  --pan-blue: #a9e1f2;
+  --pan-blue-dark: #5daeca;
   --shower-display: 'ShowerDisplay', Georgia, serif;
   --shower-body: 'Lato', 'Avenir Next', sans-serif;
 }
@@ -39,14 +43,14 @@
 .pan-opening::after {
   position: absolute;
   inset: 18px;
-  border: 1px solid rgba(187, 102, 95, 0.28);
+  border: 1px solid rgba(93, 174, 202, 0.42);
   content: '';
   pointer-events: none;
 }
 
 .pan-opening::after {
   inset: 25px;
-  border-color: rgba(199, 155, 82, 0.28);
+  border-color: rgba(169, 225, 242, 0.74);
 }
 
 .pan-opening__monogram {
@@ -97,10 +101,10 @@
   left: 37px;
   width: 116px;
   height: 83px;
-  border: 3px solid #99594b;
+  border: 3px solid var(--pan-purple-dark);
   border-radius: 12px 12px 38px 38px;
-  background: linear-gradient(135deg, #d99575 0%, #bd705c 55%, #9d584b 100%);
-  box-shadow: inset 6px 3px 0 rgba(255, 255, 255, 0.22), 0 13px 15px rgba(38, 61, 58, 0.14);
+  background: linear-gradient(135deg, #a889cb 0%, var(--pan-purple) 55%, var(--pan-purple-dark) 100%);
+  box-shadow: inset 6px 3px 0 rgba(255, 255, 255, 0.24), 0 13px 15px rgba(38, 61, 58, 0.14);
   animation: shower-pot-simmer 2.4s ease-in-out infinite;
 }
 
@@ -110,7 +114,7 @@
   top: 27px;
   width: 20px;
   height: 22px;
-  border: 5px solid #99594b;
+  border: 5px solid var(--pan-blue-dark);
   content: '';
 }
 
@@ -132,9 +136,9 @@
   left: 4px;
   width: 108px;
   height: 14px;
-  border: 2px solid #99594b;
+  border: 2px solid var(--pan-blue-dark);
   border-radius: 12px 12px 5px 5px;
-  background: #e8ba82;
+  background: var(--pan-blue);
   transform-origin: 95% 100%;
 }
 
@@ -149,7 +153,7 @@
   width: 10px;
   height: 34px;
   border-radius: 50%;
-  border-left: 3px solid rgba(49, 90, 76, 0.45);
+  border-left: 3px solid rgba(93, 174, 202, 0.72);
   opacity: 0;
   animation: shower-steam 1.8s ease-out infinite;
 }
@@ -165,8 +169,8 @@
   width: 18px;
   height: 32px;
   border-radius: 60% 40% 50% 50%;
-  background: #d78a42;
-  filter: drop-shadow(0 0 9px rgba(215, 138, 66, 0.35));
+  background: var(--pan-blue);
+  filter: drop-shadow(0 0 9px rgba(93, 174, 202, 0.5));
   transform: rotate(45deg);
   animation: shower-flame 600ms ease-in-out infinite alternate;
 }
@@ -181,9 +185,9 @@
   bottom: 6px;
   left: 18px;
   height: 18px;
-  border: 2px solid rgba(38, 61, 58, 0.68);
+  border: 2px solid var(--pan-blue-dark);
   border-radius: 5px 5px 14px 14px;
-  background: #526a58;
+  background: linear-gradient(180deg, #d4f1f8, var(--pan-blue));
 }
 
 .pan-opening__copy {
@@ -198,15 +202,16 @@
   margin-top: 20px !important;
   padding: 12px 24px !important;
   border-radius: 3px !important;
-  background: var(--shower-green) !important;
-  box-shadow: 0 8px 0 #234136, 0 12px 22px rgba(35, 65, 54, 0.19) !important;
+  color: #23465a !important;
+  background: var(--pan-blue) !important;
+  box-shadow: 0 8px 0 var(--pan-blue-dark), 0 12px 22px rgba(38, 104, 132, 0.19) !important;
   font-family: var(--shower-body) !important;
   font-weight: 700 !important;
   text-transform: none !important;
   transition: transform 180ms ease, box-shadow 180ms ease !important;
 }
 
-.pan-opening__button:hover { transform: translateY(3px); box-shadow: 0 5px 0 #234136 !important; }
+.pan-opening__button:hover { transform: translateY(3px); box-shadow: 0 5px 0 var(--pan-blue-dark) !important; }
 .pan-opening__hint { margin-top: 13px !important; font-family: var(--shower-body) !important; font-size: 0.75rem !important; color: rgba(38, 61, 58, 0.6); }
 
 .shower-page {
