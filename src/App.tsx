@@ -19,6 +19,7 @@ import GiftsPage from './pages/guest/GiftsPage';
 import GalleryPage from './pages/guest/GalleryPage';
 import WallPage from './pages/guest/WallPage';
 import PartyPage from './pages/guest/PartyPage';
+import ChaDePanelaPage from './pages/public/ChaDePanelaPage';
 
 function RequireAdminAuth() {
   const { isAuthenticated } = useAdminAuth();
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/presentes" element={<GiftsPage />} />
           <Route path="/galeria" element={<GalleryPage />} />
           <Route path="/mural" element={<WallPage />} />
+          <Route path="/cha-de-panela" element={<ChaDePanelaPage />} />
 
           {/* Admin routes */}
           <Route path="/admin/login" element={<LoginPage />} />

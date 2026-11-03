@@ -12,6 +12,9 @@ import GuestLayout from './GuestLayout';
 import { listGifts, markGiftPurchased, type GiftItem } from '../../api/giftsApi';
 import { getApiErrorData } from '../../utils/apiError';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
+import PixPaymentDialog from '../../components/PixPaymentDialog';
+import { getWeddingPix, reportWeddingPix } from '../../api/giftsApi';
+import { useGuestAuth } from '../../contexts/GuestAuthContext';
 
 const giftCardSx = {
   height: '100%',
@@ -26,8 +29,10 @@ const giftCardSx = {
 
 export default function GiftsPage() {
   const navigate = useAnimatedNavigate();
+  const { guest } = useGuestAuth();
   const qc = useQueryClient();
   const [confirmItem, setConfirmItem] = useState<GiftItem | null>(null);
+  const [pixItem, setPixItem] = useState<GiftItem | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
   const { data, isLoading, isError } = useQuery({
@@ -40,6 +45,7 @@ export default function GiftsPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['guest', 'gifts'] });
       setConfirmItem(null);
+      setPixItem(null);
       setErrorMsg('');
     },
     onError: (err: unknown) => {
@@ -132,6 +138,11 @@ export default function GiftsPage() {
                     {item.priceRange}
                   </Typography>
                 )}
+                {item.priceAmount != null && (
+                  <Typography variant="body2" color="primary" sx={{ fontWeight: 600, mt: 0.5 }}>
+                    {item.priceAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </Typography>
+                )}
               </CardContent>
               <CardActions sx={{ px: 2, pb: 2, pt: 0, gap: 1, borderTop: '1px solid rgba(181, 154, 199, 0.16)' }}>
                 {item.externalUrl && (
@@ -151,9 +162,13 @@ export default function GiftsPage() {
                     size="small"
                     variant="contained"
                     startIcon={<ShoppingBagIcon />}
-                    onClick={() => { setConfirmItem(item); setErrorMsg(''); }}
+                    onClick={() => {
+                      setErrorMsg('');
+                      if (item.priceAmount != null) setPixItem(item);
+                      else setConfirmItem(item);
+                    }}
                   >
-                    Vou presentear
+                    {item.priceAmount != null ? 'Presentear com Pix' : 'Registrar presente'}
                   </Button>
                 )}
               </CardActions>
@@ -171,7 +186,7 @@ export default function GiftsPage() {
             Deseja marcar <strong>{confirmItem?.title}</strong> como comprado?
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Ao confirmar, o presente ficará reservado para você e não aparecerá disponível para outros convidados.
+            Este registro não reserva o presente; outras pessoas também podem escolher o mesmo item.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -187,6 +202,16 @@ export default function GiftsPage() {
           </Button>
         </DialogActions>
       </Dialog>
+      {pixItem && (
+        <PixPaymentDialog
+          open
+          item={pixItem}
+          onClose={() => setPixItem(null)}
+          loadPayment={getWeddingPix}
+          reportPayment={reportWeddingPix}
+          initialName={guest?.displayName ?? ''}
+        />
+      )}
     </GuestLayout>
   );
 }

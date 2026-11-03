@@ -149,6 +149,12 @@ export const guestClient = axios.create({
   timeout: 15000,
 });
 
+export const publicClient = axios.create({
+  baseURL: BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
+});
+
 guestClient.interceptors.request.use((config) => {
   const token = getGuestToken();
   if (token) {

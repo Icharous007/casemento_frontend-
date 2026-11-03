@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import { getGuestSession, setGuestSession } from '../api/client';
 import { type RegisterAccessResponse, getMe } from '../api/guestApi';
 
@@ -19,6 +20,7 @@ interface GuestAuthContextType {
 const GuestAuthContext = createContext<GuestAuthContextType | null>(null);
 
 export function GuestAuthProvider({ children }: { children: ReactNode }) {
+  const location = useLocation();
   const [guest, setGuest] = useState<GuestState | null>(() => {
     const session = getGuestSession();
     if (!session?.accessToken) return null;
@@ -33,6 +35,7 @@ export function GuestAuthProvider({ children }: { children: ReactNode }) {
 
   // Try to validate stored token on mount; keep session identity from latest login response.
   useEffect(() => {
+    if (location.pathname === '/cha-de-panela') return;
     const session = getGuestSession();
     if (session?.accessToken) {
       getMe()
@@ -42,7 +45,7 @@ export function GuestAuthProvider({ children }: { children: ReactNode }) {
           setGuest(null);
         });
     }
-  }, []);
+  }, [location.pathname]);
 
   function loginWithRegisteredAccess(response: RegisterAccessResponse) {
     setGuestSession(response);

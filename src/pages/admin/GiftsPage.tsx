@@ -4,20 +4,25 @@ import {
   Box, Typography, Button, TextField, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, IconButton, Chip,
   Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress,
-  Alert, Stack, Tooltip,
+  Alert, Stack, Tooltip, Tabs, Tab, MenuItem,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import UndoIcon from '@mui/icons-material/Undo';
+import SettingsIcon from '@mui/icons-material/Settings';
 import {
   adminListGifts,
   adminCreateGift,
   adminUpdateGift,
   adminDeleteGift,
   adminUnmarkGiftPurchased,
+  getPixSettings,
+  updatePixSettings,
   type GiftItemAdmin,
   type CreateGiftRequest,
+  type GiftCategory,
+  type PixSettings,
 } from '../../api/giftsApi';
 import { getApiErrorData } from '../../utils/apiError';
 
@@ -30,21 +35,28 @@ const emptyForm: CreateGiftRequest = {
   imageUrl: '',
   priceRange: '',
   displayOrder: 0,
+  category: 'WEDDING',
+  priceAmount: null,
 };
 
 export default function AdminGiftsPage() {
   const qc = useQueryClient();
   const [page] = useState(1);
+  const [category, setCategory] = useState<GiftCategory>('WEDDING');
   const [formOpen, setFormOpen] = useState(false);
   const [editItem, setEditItem] = useState<GiftItemAdmin | null>(null);
   const [form, setForm] = useState<CreateGiftRequest>(emptyForm);
   const [formError, setFormError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<GiftItemAdmin | null>(null);
+  const [pixSettingsOpen, setPixSettingsOpen] = useState(false);
+  const [pixForm, setPixForm] = useState<PixSettings>({ pixKey: '00115205152', pixKeyType: 'CPF', merchantName: '', merchantCity: '' });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'gifts', page],
-    queryFn: () => adminListGifts({ page, pageSize: PAGE_SIZE }),
+    queryKey: ['admin', 'gifts', page, category],
+    queryFn: () => adminListGifts({ page, pageSize: PAGE_SIZE, category }),
   });
+
+  const pixSettingsQuery = useQuery({ queryKey: ['admin', 'pix-settings'], queryFn: getPixSettings });
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['admin', 'gifts'] });
 
@@ -55,7 +67,7 @@ export default function AdminGiftsPage() {
   });
 
   const updateMut = useMutation({
-    mutationFn: () => adminUpdateGift(editItem?.id ?? '', form),
+    mutationFn: () => adminUpdateGift(editItem?.id ?? '', { ...form, clearPriceAmount: form.priceAmount == null }),
     onSuccess: () => { invalidate(); closeForm(); },
     onError: (err: unknown) => setFormError(getApiErrorData(err).message ?? 'Erro ao salvar.'),
   });
@@ -70,9 +82,17 @@ export default function AdminGiftsPage() {
     onSuccess: () => invalidate(),
   });
 
+  const pixSettingsMut = useMutation({
+    mutationFn: () => updatePixSettings(pixForm),
+    onSuccess: (settings) => {
+      qc.setQueryData(['admin', 'pix-settings'], settings);
+      setPixSettingsOpen(false);
+    },
+  });
+
   function openCreate() {
     setEditItem(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, category });
     setFormError('');
     setFormOpen(true);
   }
@@ -86,6 +106,8 @@ export default function AdminGiftsPage() {
       imageUrl: item.imageUrl ?? '',
       priceRange: item.priceRange ?? '',
       displayOrder: item.displayOrder,
+      category: item.category,
+      priceAmount: item.priceAmount ?? null,
     });
     setFormError('');
     setFormOpen(true);
@@ -94,7 +116,7 @@ export default function AdminGiftsPage() {
   function closeForm() {
     setFormOpen(false);
     setEditItem(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, category });
     setFormError('');
   }
 
@@ -104,10 +126,21 @@ export default function AdminGiftsPage() {
     <Box>
       <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 500 }}>Lista de Presentes</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
-          Novo Presente
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button variant="outlined" startIcon={<SettingsIcon />} onClick={() => {
+            setPixForm(pixSettingsQuery.data ?? { pixKey: '00115205152', pixKeyType: 'CPF', merchantName: '', merchantCity: '' });
+            setPixSettingsOpen(true);
+          }}>
+            Chave PIX
+          </Button>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>Novo Presente</Button>
+        </Stack>
       </Stack>
+
+      <Tabs value={category} onChange={(_, value: GiftCategory) => setCategory(value)} sx={{ mb: 2 }}>
+        <Tab value="WEDDING" label="Casamento" />
+        <Tab value="BRIDAL_SHOWER" label="Chá de Panela" />
+      </Tabs>
 
       {isLoading ? (
         <Box sx={{ textAlign: 'center', py: 6 }}><CircularProgress /></Box>
@@ -119,7 +152,7 @@ export default function AdminGiftsPage() {
                 <TableCell>Título</TableCell>
                 <TableCell>Faixa de Preço</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell>Comprado por</TableCell>
+                <TableCell>Contribuições</TableCell>
                 <TableCell>Ordem</TableCell>
                 <TableCell align="right">Ações</TableCell>
               </TableRow>
@@ -144,7 +177,7 @@ export default function AdminGiftsPage() {
                       </Typography>
                     )}
                   </TableCell>
-                  <TableCell>{item.priceRange ?? '—'}</TableCell>
+                  <TableCell>{item.priceAmount != null ? item.priceAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : item.priceRange ?? '—'}</TableCell>
                   <TableCell>
                     {(() => {
                       let giftStatusLabel = 'Indisponível';
@@ -159,15 +192,15 @@ export default function AdminGiftsPage() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    {item.purchasedBy?.name ? (
-                      <Box>
-                        <Typography variant="body2">{item.purchasedBy.name}</Typography>
-                        {item.purchasedAt && (
-                          <Typography variant="caption" color="text.secondary">
-                            {new Date(item.purchasedAt).toLocaleDateString('pt-BR')}
+                    {item.contributions?.length ? (
+                      <Stack spacing={0.4}>
+                        {item.contributions.map((contribution) => (
+                          <Typography variant="caption" key={contribution.id}>
+                            {contribution.giverName} · {new Date(contribution.purchasedAt).toLocaleDateString('pt-BR')}
+                            {contribution.paymentMethod === 'PIX' ? ' · Pix informado' : ''}
                           </Typography>
-                        )}
-                      </Box>
+                        ))}
+                      </Stack>
                     ) : '—'}
                   </TableCell>
                   <TableCell>{item.displayOrder}</TableCell>
@@ -229,6 +262,16 @@ export default function AdminGiftsPage() {
               size="small"
             />
             <TextField
+              label="Valor exato para Pix (R$)"
+              value={form.priceAmount ?? ''}
+              onChange={(e) => setForm({ ...form, priceAmount: e.target.value === '' ? null : Number(e.target.value) })}
+              fullWidth
+              size="small"
+              type="number"
+              slotProps={{ htmlInput: { min: 0.01, step: 0.01 } }}
+              helperText="Opcional. Ao preencher, o presente terá QR Code e Pix Copia e Cola."
+            />
+            <TextField
               label="Link externo do produto"
               value={form.externalUrl}
               onChange={(e) => setForm({ ...form, externalUrl: e.target.value })}
@@ -262,6 +305,32 @@ export default function AdminGiftsPage() {
             onClick={() => editItem ? updateMut.mutate() : createMut.mutate()}
           >
             {saving ? <CircularProgress size={20} /> : 'Salvar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={pixSettingsOpen} onClose={() => setPixSettingsOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Recebimento por Pix</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              select label="Tipo de chave" value={pixForm.pixKeyType}
+              onChange={(e) => setPixForm({ ...pixForm, pixKeyType: e.target.value as PixSettings['pixKeyType'] })}
+              fullWidth size="small"
+            >
+              {['CPF', 'CNPJ', 'EMAIL', 'PHONE', 'EVP'].map((type) => <MenuItem key={type} value={type}>{type}</MenuItem>)}
+            </TextField>
+            <TextField label="Chave Pix" value={pixForm.pixKey} onChange={(e) => setPixForm({ ...pixForm, pixKey: e.target.value })} fullWidth size="small" />
+            <TextField label="Nome do recebedor (máx. 25 caracteres)" value={pixForm.merchantName ?? ''} onChange={(e) => setPixForm({ ...pixForm, merchantName: e.target.value })} fullWidth size="small" />
+            <TextField label="Cidade do recebedor (obrigatória)" value={pixForm.merchantCity ?? ''} onChange={(e) => setPixForm({ ...pixForm, merchantCity: e.target.value })} fullWidth size="small" />
+            <Alert severity="info">A chave informada é exibida aos convidados no QR Code e no Pix Copia e Cola. O site não confirma automaticamente se o pagamento foi concluído.</Alert>
+            {pixSettingsMut.isError && <Alert severity="error">Não foi possível salvar as configurações do Pix.</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPixSettingsOpen(false)} disabled={pixSettingsMut.isPending}>Cancelar</Button>
+          <Button variant="contained" disabled={pixSettingsMut.isPending || !pixForm.pixKey.trim() || !pixForm.merchantCity?.trim()} onClick={() => pixSettingsMut.mutate()}>
+            {pixSettingsMut.isPending ? <CircularProgress size={20} /> : 'Salvar'}
           </Button>
         </DialogActions>
       </Dialog>
