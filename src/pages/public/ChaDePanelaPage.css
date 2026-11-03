@@ -272,7 +272,7 @@
 .shower-gift__placeholder svg { font-size: 52px; }
 .shower-gift__content { display: flex; min-height: 212px; flex-direction: column; align-items: flex-start; padding: 19px !important; }
 .shower-gift__price { color: var(--shower-rose); font-family: var(--shower-body) !important; font-size: 0.9rem !important; font-weight: 700 !important; }
-.shower-gift__title { margin-top: 5px !important; font-family: var(--shower-display) !important; font-size: 1.3rem !important; font-weight: 600 !important; color: var(--shower-green); }
+.shower-gift__title { margin-top: 5px !important; font-family: 'Lato', 'Segoe UI', sans-serif !important; font-style: normal !important; font-size: 1.1rem !important; font-weight: 700 !important; line-height: 1.4 !important; color: var(--shower-ink) !important; }
 .shower-gift__description { margin-top: 8px !important; font-family: 'Lato', 'Segoe UI', sans-serif !important; font-style: normal !important; font-size: 0.92rem !important; font-weight: 400 !important; line-height: 1.65 !important; color: rgba(38, 58, 87, 0.82) !important; }
 .shower-gift__button { margin-top: auto !important; padding: 9px 13px !important; border-radius: 3px !important; color: white !important; background: var(--shower-green) !important; font-family: var(--shower-body) !important; font-size: 0.78rem !important; font-weight: 700 !important; text-transform: none !important; }
 .shower-gift__button.Mui-disabled { color: rgba(38, 58, 87, 0.5) !important; background: rgba(125, 152, 218, 0.16) !important; }
