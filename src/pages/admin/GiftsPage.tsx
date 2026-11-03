@@ -25,6 +25,7 @@ import {
   type PixSettings,
 } from '../../api/giftsApi';
 import { getApiErrorData } from '../../utils/apiError';
+import { parseBrazilianCurrency } from '../../utils/currency';
 
 const PAGE_SIZE = 20;
 
@@ -46,6 +47,7 @@ export default function AdminGiftsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editItem, setEditItem] = useState<GiftItemAdmin | null>(null);
   const [form, setForm] = useState<CreateGiftRequest>(emptyForm);
+  const [priceAmountInput, setPriceAmountInput] = useState('');
   const [formError, setFormError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<GiftItemAdmin | null>(null);
   const [pixSettingsOpen, setPixSettingsOpen] = useState(false);
@@ -57,17 +59,23 @@ export default function AdminGiftsPage() {
   });
 
   const pixSettingsQuery = useQuery({ queryKey: ['admin', 'pix-settings'], queryFn: getPixSettings });
+  const parsedPriceAmount = parseBrazilianCurrency(priceAmountInput);
+  const invalidPriceAmount = parsedPriceAmount === undefined;
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['admin', 'gifts'] });
 
   const createMut = useMutation({
-    mutationFn: () => adminCreateGift(form),
+    mutationFn: () => adminCreateGift({ ...form, priceAmount: parsedPriceAmount ?? null }),
     onSuccess: () => { invalidate(); closeForm(); },
     onError: (err: unknown) => setFormError(getApiErrorData(err).message ?? 'Erro ao salvar.'),
   });
 
   const updateMut = useMutation({
-    mutationFn: () => adminUpdateGift(editItem?.id ?? '', { ...form, clearPriceAmount: form.priceAmount == null }),
+    mutationFn: () => adminUpdateGift(editItem?.id ?? '', {
+      ...form,
+      priceAmount: parsedPriceAmount ?? null,
+      clearPriceAmount: parsedPriceAmount === null,
+    }),
     onSuccess: () => { invalidate(); closeForm(); },
     onError: (err: unknown) => setFormError(getApiErrorData(err).message ?? 'Erro ao salvar.'),
   });
@@ -93,12 +101,16 @@ export default function AdminGiftsPage() {
   function openCreate() {
     setEditItem(null);
     setForm({ ...emptyForm, category });
+    setPriceAmountInput('');
     setFormError('');
     setFormOpen(true);
   }
 
   function openEdit(item: GiftItemAdmin) {
     setEditItem(item);
+    setPriceAmountInput(item.priceAmount == null
+      ? ''
+      : item.priceAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
     setForm({
       title: item.title,
       description: item.description ?? '',
@@ -117,6 +129,7 @@ export default function AdminGiftsPage() {
     setFormOpen(false);
     setEditItem(null);
     setForm({ ...emptyForm, category });
+    setPriceAmountInput('');
     setFormError('');
   }
 
@@ -263,13 +276,16 @@ export default function AdminGiftsPage() {
             />
             <TextField
               label="Valor exato para Pix (R$)"
-              value={form.priceAmount ?? ''}
-              onChange={(e) => setForm({ ...form, priceAmount: e.target.value === '' ? null : Number(e.target.value) })}
+              value={priceAmountInput}
+              onChange={(e) => setPriceAmountInput(e.target.value)}
               fullWidth
               size="small"
-              type="number"
-              slotProps={{ htmlInput: { min: 0.01, step: 0.01 } }}
-              helperText="Opcional. Ao preencher, o presente terá QR Code e Pix Copia e Cola."
+              type="text"
+              slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+              error={invalidPriceAmount}
+              helperText={invalidPriceAmount
+                ? 'Informe um valor válido, por exemplo 12,34.'
+                : 'Opcional. Use vírgula para os centavos, por exemplo 12,34.'}
             />
             <TextField
               label="Link externo do produto"
@@ -301,7 +317,7 @@ export default function AdminGiftsPage() {
           <Button onClick={closeForm} disabled={saving}>Cancelar</Button>
           <Button
             variant="contained"
-            disabled={saving || !form.title.trim()}
+            disabled={saving || !form.title.trim() || invalidPriceAmount}
             onClick={() => editItem ? updateMut.mutate() : createMut.mutate()}
           >
             {saving ? <CircularProgress size={20} /> : 'Salvar'}
