@@ -70,7 +70,7 @@ export default function ChaDePanelaPage() {
             </Box>
             <span className="pan-stove__base" />
           </Box>
-          <Typography className="pan-opening__copy">Uma pitada de amor, uma colher de risada<br />e muitos mimos para a cozinha.</Typography>
+          <Typography className="pan-opening__copy">Uma pitada de amor, uma colher de risada<br />e muitos mimos para a casa.</Typography>
           <Button className="pan-opening__button" variant="contained" onClick={uncoverPan} startIcon={<AutoAwesomeIcon />}>
             Destampar a panela
           </Button>
@@ -91,7 +91,7 @@ export default function ChaDePanelaPage() {
               </Box>
               <Box className="shower-hero__message">
                 <Typography className="shower-hero__eyebrow">Panelas, risadas e uma casa nova</Typography>
-                <Typography component="h1" className="shower-hero__title">Vamos encher<br />essa cozinha de amor.</Typography>
+                <Typography component="h1" className="shower-hero__title">Vamos encher<br />essa casa de amor.</Typography>
                 <Typography className="shower-hero__couple">{data?.coupleNames ?? 'O casal'}</Typography>
                 <Typography className="shower-hero__copy">
                   Escolha um mimo da lista e ajude a temperar o começo dessa nova vida. Cada contribuição deixa a casa mais com a nossa cara.
