@@ -10,7 +10,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import { getBridalShower, getBridalShowerPix, reportBridalShowerPix, type GiftItem } from '../../api/giftsApi';
 import PixPaymentDialog from '../../components/PixPaymentDialog';
 import monogram from '../../assets/logo_comprimido.png';
-import invitation from '../../assets/home2.png';
+import invitation from '../../assets/chadepanela.jpeg';
 import './ChaDePanelaPage.css';
 
 type PriceBand = 'all' | 'small' | 'medium' | 'large';
