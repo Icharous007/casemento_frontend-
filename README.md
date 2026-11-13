@@ -1,5 +1,29 @@
 # React + TypeScript + Vite
 
+## Dynamic gallery
+
+The guest gallery starts with 10 media items and appends batches of 10 using
+TanStack Query's infinite queries. An `IntersectionObserver` starts loading
+600px before the end of the grid; the vertical viewer requests the next batch
+when three items remain. Normal navigation requires no "Ver mais" button.
+Failed requests preserve the loaded items and offer retry; browsers without
+the observer API receive a manual fallback button.
+
+The default sort is weighted random, with recent and most-liked options still
+available. Each mode uses a guest-scoped backend snapshot, keeping pagination
+and re-fetches stable when engagement changes. "Atualizar galeria" starts a new
+snapshot; publishing also refreshes the feed so the upload becomes eligible.
+Sessions expire after two hours and require an explicit refresh.
+
+The grid loads lazy thumbnails/posters, never video files. The viewer mounts
+only the active item and its immediate neighbours; only the active video uses
+`preload="auto"`. Likes update the infinite-query cache optimistically, and
+comments refresh counters without reshuffling the feed.
+
+Deploy the backend migration and `/api/v1/media/feed` endpoint before this
+frontend. Validate with `pnpm exec vitest run src/__tests__/pages/GalleryPage.test.tsx`
+and `pnpm build`.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

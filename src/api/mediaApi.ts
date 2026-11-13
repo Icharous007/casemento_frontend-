@@ -38,6 +38,15 @@ export interface MediaListResponse {
   galleryHidden: boolean;
 }
 
+export type MediaSort = 'recent' | 'popular' | 'random';
+
+export interface MediaFeedResponse {
+  items: MediaItem[];
+  nextCursor: number | null;
+  hasMore: boolean;
+  galleryHidden: boolean;
+}
+
 export interface LikeResponse {
   mediaId: string;
   liked: boolean;
@@ -78,6 +87,16 @@ export async function listMedia(params?: {
   sort?: 'recent' | 'popular';
 }): Promise<MediaListResponse> {
   const { data } = await guestClient.get<MediaListResponse>('/media', { params });
+  return data;
+}
+
+export async function listMediaFeed(params: {
+  feedId: string;
+  sort: MediaSort;
+  cursor: number;
+  pageSize: number;
+}, signal?: AbortSignal): Promise<MediaFeedResponse> {
+  const { data } = await guestClient.get<MediaFeedResponse>('/media/feed', { params, signal });
   return data;
 }
 

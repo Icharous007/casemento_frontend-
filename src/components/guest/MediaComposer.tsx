@@ -22,7 +22,7 @@ import {
   type MediaAttempt,
 } from '../../utils/mediaTelemetry';
 
-export default function MediaComposer() {
+export default function MediaComposer({ onPublished }: { onPublished?: () => void } = {}) {
   const qc = useQueryClient();
   const [error, setError] = useState('');
   const [pending, setPending] = useState<File | null>(null);
@@ -102,6 +102,7 @@ export default function MediaComposer() {
     try {
       await uploadMedia(pending, pendingAttempt.attemptId, caption, setUploadProgress);
       qc.invalidateQueries({ queryKey: ['guest', 'media'] });
+      onPublished?.();
       logMediaEvent('guest_media_upload_succeeded', pendingAttempt, {
         mediaType,
         contentType,

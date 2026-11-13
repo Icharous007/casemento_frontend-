@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type SyntheticEvent } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import {
   Box, Typography, IconButton, Button, TextField, CircularProgress, Alert,
   Stack, Drawer, Avatar,
@@ -18,14 +18,14 @@ import MediaComposer from '../../components/guest/MediaComposer';
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import { getMe } from '../../api/guestApi';
 import {
-  listMedia,
   addMediaLike,
   removeMediaLike,
   addMediaComment,
   listMediaComments,
   type MediaItem,
-  type MediaListResponse,
+  type MediaFeedResponse,
 } from '../../api/mediaApi';
+import { useGalleryFeed } from '../../hooks/useGalleryFeed';
 import './GalleryPage.css';
 
 const DOUBLE_TAP_MS = 450;
@@ -105,6 +105,7 @@ export default function GalleryPage() {
   const qc = useQueryClient();
   const { guest } = useGuestAuth();
   const reelsRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const lastTapRef = useRef<TapPoint>({ time: 0, id: '', x: 0, y: 0 });
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -114,24 +115,57 @@ export default function GalleryPage() {
   const pausedByUserRef = useRef(false);
   const singleTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [sort, setSort] = useState<'recent' | 'popular'>('recent');
-  const [page, setPage] = useState(1);
-  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [viewerId, setViewerId] = useState<string | null>(null);
   const [muted, setMuted] = useState(true);
   const [pausedMediaId, setPausedMediaId] = useState<string | null>(null);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [heartBurstId, setHeartBurstId] = useState<string | null>(null);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['guest', 'media', sort, page],
-    queryFn: () => listMedia({ page, pageSize: 24, sort }),
-  });
-
-  const items = useMemo(() => data?.items ?? [], [data?.items]);
+  const {
+    data, isLoading, isError, isFetching, isFetchingNextPage, isFetchNextPageError,
+    hasNextPage, fetchNextPage, refetch, sort, setSort, refresh,
+  } = useGalleryFeed(guest?.guestId);
+  const items = useMemo(() => {
+    const seen = new Set<string>();
+    return (data?.pages.flatMap((page) => page.items) ?? []).filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }, [data?.pages]);
+  const galleryHidden = data?.pages.some((page) => page.galleryHidden) ?? false;
+  const selectedIndex = viewerId == null || galleryHidden ? -1 : items.findIndex((item) => item.id === viewerId);
+  const viewerIndex = selectedIndex < 0 ? null : selectedIndex;
   const viewerOpen = viewerIndex != null;
   const selectedMedia = viewerIndex != null ? items[viewerIndex] ?? null : null;
   const paused = selectedMedia?.id != null && selectedMedia.id === pausedMediaId;
+  const supportsObserver = typeof IntersectionObserver !== 'undefined';
+
+  function setViewerIndex(index: number | null) {
+    setViewerId(index == null ? null : items[index]?.id ?? null);
+  }
+
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!supportsObserver || !sentinel || viewerOpen || galleryHidden || !hasNextPage
+      || isFetching || isFetchNextPageError) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        void fetchNextPage({ cancelRefetch: false });
+      }
+    }, { rootMargin: '600px 0px' });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [supportsObserver, viewerOpen, galleryHidden, hasNextPage, isFetching,
+    isFetchNextPageError, fetchNextPage, items.length]);
+
+  useEffect(() => {
+    if (viewerIndex != null && viewerIndex >= items.length - 3 && hasNextPage
+      && !isFetching && !isFetchNextPageError) {
+      void fetchNextPage({ cancelRefetch: false });
+    }
+  }, [viewerIndex, items.length, hasNextPage, isFetching, isFetchNextPageError, fetchNextPage]);
 
   const { data: me } = useQuery({
     queryKey: ['guest', 'me'],
@@ -154,20 +188,27 @@ export default function GalleryPage() {
       likedByMe ? removeMediaLike(mediaId) : addMediaLike(mediaId),
     onMutate: async ({ mediaId, likedByMe }) => {
       await qc.cancelQueries({ queryKey: ['guest', 'media'] });
-      const snapshots = qc.getQueriesData<MediaListResponse>({ queryKey: ['guest', 'media'] });
-      qc.setQueriesData<MediaListResponse>({ queryKey: ['guest', 'media'] }, (current) => {
+      const snapshots = qc.getQueriesData<InfiniteData<MediaFeedResponse>>({
+        queryKey: ['guest', 'media', 'feed', guest?.guestId],
+      });
+      qc.setQueriesData<InfiniteData<MediaFeedResponse>>({
+        queryKey: ['guest', 'media', 'feed', guest?.guestId],
+      }, (current) => {
         if (!current) return current;
         return {
           ...current,
-          items: current.items.map((item) => {
-            if (item.id !== mediaId) return item;
-            const nextLiked = !likedByMe;
-            return {
-              ...item,
-              likedByMe: nextLiked,
-              likeCount: Math.max(0, item.likeCount + (nextLiked ? 1 : -1)),
-            };
-          }),
+          pages: current.pages.map((page) => ({
+            ...page,
+            items: page.items.map((item) => {
+              if (item.id !== mediaId) return item;
+              const nextLiked = !likedByMe;
+              return {
+                ...item,
+                likedByMe: nextLiked,
+                likeCount: Math.max(0, item.likeCount + (nextLiked ? 1 : -1)),
+              };
+            }),
+          })),
         };
       });
       return { snapshots };
@@ -227,7 +268,7 @@ export default function GalleryPage() {
   useEffect(() => {
     if (!viewerOpen) return undefined;
     const root = reelsRef.current;
-    if (!root) return undefined;
+    if (!root || !supportsObserver) return undefined;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -239,7 +280,7 @@ export default function GalleryPage() {
         const index = Number((visible.target as HTMLElement).dataset.index);
         if (!Number.isNaN(index) && index !== viewerIndex) {
           pausedByUserRef.current = false;
-          setViewerIndex(index);
+          setViewerId(items[index]?.id ?? null);
         }
       },
       { root, threshold: [0.65, 0.9] },
@@ -247,7 +288,7 @@ export default function GalleryPage() {
 
     Array.from(root.children).forEach((child) => observer.observe(child));
     return () => observer.disconnect();
-  }, [viewerOpen, items.length, viewerIndex]);
+  }, [viewerOpen, items, viewerIndex, supportsObserver]);
 
   function openViewer(index: number) {
     pendingScrollIndex.current = index;
@@ -360,10 +401,20 @@ export default function GalleryPage() {
     );
   }
 
-  if (isError || !data) {
+  if (!data) {
     return (
       <GuestLayout>
-        <Alert severity="error">Não foi possível carregar a galeria.</Alert>
+        <Alert severity="error" action={<Button onClick={refresh}>Tentar novamente</Button>}>
+          Não foi possível carregar a galeria.
+        </Alert>
+      </GuestLayout>
+    );
+  }
+
+  if (galleryHidden) {
+    return (
+      <GuestLayout title="Galeria">
+        <Alert severity="info">A galeria deste evento foi encerrada.</Alert>
       </GuestLayout>
     );
   }
@@ -377,15 +428,22 @@ export default function GalleryPage() {
         Compartilhe seus momentos especiais do evento!
       </Typography>
 
-      <MediaComposer />
+      <MediaComposer onPublished={refresh} />
 
-      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+      <Stack direction="row" spacing={1} useFlexGap sx={{ mb: 2, flexWrap: 'wrap' }}>
+        <Button
+          variant={sort === 'random' ? 'contained' : 'outlined'}
+          size="small"
+          onClick={() => setSort('random')}
+          sx={{ borderRadius: 999, px: 2.5 }}
+        >
+          Aleatória
+        </Button>
         <Button
           variant={sort === 'recent' ? 'contained' : 'outlined'}
           size="small"
           onClick={() => {
             setSort('recent');
-            setPage(1);
           }}
           sx={{
             borderRadius: 999,
@@ -400,7 +458,6 @@ export default function GalleryPage() {
           size="small"
           onClick={() => {
             setSort('popular');
-            setPage(1);
           }}
           sx={{
             borderRadius: 999,
@@ -410,7 +467,14 @@ export default function GalleryPage() {
         >
           Mais curtidos
         </Button>
+        <Button size="small" onClick={refresh}>Atualizar galeria</Button>
       </Stack>
+
+      {(likeMut.isError || commentMut.isError) && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Não foi possível salvar a interação. Tente novamente.
+        </Alert>
+      )}
 
       {items.length === 0 && (
         <Alert severity="info">Nenhuma mídia publicada ainda. Seja o primeiro!</Alert>
@@ -508,18 +572,24 @@ export default function GalleryPage() {
         ))}
       </Box>
 
-      <Stack direction="row" spacing={1.5} sx={{ mt: 2, justifyContent: 'center' }}>
-        {page > 1 && (
-          <Button variant="outlined" size="small" onClick={() => setPage((current) => current - 1)}>
-            Anterior
-          </Button>
+      <Box ref={loadMoreRef} aria-live="polite" sx={{ mt: 2, minHeight: 40, textAlign: 'center' }}>
+        {isFetchingNextPage && <CircularProgress size={24} aria-label="Carregando mais mídias" />}
+        {isError && (
+          <Alert severity="error" action={(
+            <Button onClick={() => { void (isFetchNextPageError ? fetchNextPage() : refetch()); }}>
+              Tentar novamente
+            </Button>
+          )}>
+            Não foi possível carregar as mídias. Se a sessão expirou, atualize a galeria.
+          </Alert>
         )}
-        {data.hasMore && (
-          <Button variant="contained" size="small" onClick={() => setPage((current) => current + 1)}>
-            Ver mais
-          </Button>
+        {!supportsObserver && hasNextPage && !isError && (
+          <Button disabled={isFetching} onClick={() => { void fetchNextPage(); }}>Carregar mais</Button>
         )}
-      </Stack>
+        {!hasNextPage && items.length > 0 && (
+          <Typography color="text.secondary">Você viu todos os momentos.</Typography>
+        )}
+      </Box>
 
       {viewerIndex != null && selectedMedia && (
         <Box
@@ -761,6 +831,28 @@ export default function GalleryPage() {
             })}
           </Box>
 
+          {(isFetchingNextPage || isError || likeMut.isError || commentMut.isError
+            || (!hasNextPage && viewerIndex === items.length - 1)) && (
+            <Box aria-live="polite" sx={{ position: 'absolute', top: 72, left: 16, right: 16, zIndex: 5 }}>
+              {isFetchingNextPage && <CircularProgress size={24} aria-label="Carregando mais mídias" />}
+              {isError && (
+                <Alert severity="error" action={(
+                  <Button onClick={() => { void (isFetchNextPageError ? fetchNextPage() : refetch()); }}>
+                    Tentar novamente
+                  </Button>
+                )}>
+                  Falha ao carregar. Feche e atualize a galeria se a sessão expirou.
+                </Alert>
+              )}
+              {(likeMut.isError || commentMut.isError) && (
+                <Alert severity="error">Não foi possível salvar a interação. Tente novamente.</Alert>
+              )}
+              {!hasNextPage && viewerIndex === items.length - 1 && (
+                <Typography sx={{ color: '#fff', textAlign: 'center' }}>Você viu todos os momentos.</Typography>
+              )}
+            </Box>
+          )}
+
           <Drawer
             anchor="bottom"
             open={commentsOpen}
@@ -839,6 +931,7 @@ export default function GalleryPage() {
                 }}
               />
               <IconButton
+                aria-label="Enviar comentário"
                 color="primary"
                 disabled={!commentText.trim() || commentMut.isPending || !selectedMedia}
                 onClick={() => {
