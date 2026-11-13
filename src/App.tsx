@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AdminAuthProvider, useAdminAuth } from './contexts/AdminAuthContext';
 import { GuestAuthProvider } from './contexts/GuestAuthContext';
+import GalleryTransitionLayer from './components/guest/GalleryTransitionLayer';
 
 // Admin pages
 import LoginPage from './pages/admin/LoginPage';
@@ -57,8 +58,8 @@ export default function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/save-the-date" replace />} />
         </Routes>
+        <GalleryTransitionLayer />
       </GuestAuthProvider>
     </AdminAuthProvider>
   );
 }
-

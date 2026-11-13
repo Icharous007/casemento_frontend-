@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate, type NavigateOptions, type To } from 'react-router-dom';
 import { runWithViewTransition, type TransitionDirection } from '../utils/viewTransition';
+import { chooseGalleryTransitionPhoto, chooseTransitionEffect } from '../utils/galleryTransition';
 
 export interface AnimatedNavigateOptions extends NavigateOptions {
   direction?: TransitionDirection;
@@ -18,7 +19,10 @@ export function useAnimatedNavigate() {
       const { direction = 'forward', ...navigateOptions } = options ?? {};
       runWithViewTransition(() => {
         void navigate(to, navigateOptions);
-      }, direction);
+      }, direction, {
+        effect: chooseTransitionEffect(),
+        photoUrl: chooseGalleryTransitionPhoto(),
+      });
     },
     [navigate],
   );

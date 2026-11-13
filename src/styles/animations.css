@@ -168,31 +168,259 @@
   animation-fill-mode: both;
 }
 
+@keyframes vtFadeOld {
+  to { opacity: 0; }
+}
+
+@keyframes vtFadeNew {
+  from { opacity: 0; }
+}
+
+@keyframes vtPushLeftOld {
+  to { transform: translateX(-100%); }
+}
+
+@keyframes vtPushLeftNew {
+  from { transform: translateX(100%); }
+}
+
+@keyframes vtPushRightOld {
+  to { transform: translateX(100%); }
+}
+
+@keyframes vtPushRightNew {
+  from { transform: translateX(-100%); }
+}
+
+@keyframes vtPushUpOld {
+  to { transform: translateY(-100%); }
+}
+
+@keyframes vtPushUpNew {
+  from { transform: translateY(100%); }
+}
+
+@keyframes vtPushDownOld {
+  to { transform: translateY(100%); }
+}
+
+@keyframes vtPushDownNew {
+  from { transform: translateY(-100%); }
+}
+
+@keyframes vtWipeOld {
+  to { opacity: 0.2; }
+}
+
+@keyframes vtWipeLeftNew {
+  from { clip-path: inset(0 100% 0 0); }
+}
+
+@keyframes vtWipeRightNew {
+  from { clip-path: inset(0 0 0 100%); }
+}
+
+@keyframes vtSplitHorizontalOld {
+  to { transform: scaleX(0); }
+}
+
+@keyframes vtSplitHorizontalNew {
+  from { transform: scaleX(0); }
+}
+
+@keyframes vtSplitVerticalOld {
+  to { transform: scaleY(0); }
+}
+
+@keyframes vtSplitVerticalNew {
+  from { transform: scaleY(0); }
+}
+
+@keyframes vtZoomOld {
+  to { opacity: 0; transform: scale(0.7); }
+}
+
+@keyframes vtZoomNew {
+  from { opacity: 0; transform: scale(1.25); }
+}
+
+@keyframes vtFlipOld {
+  to { opacity: 0; transform: perspective(900px) rotateY(-80deg); }
+}
+
+@keyframes vtFlipNew {
+  from { opacity: 0; transform: perspective(900px) rotateY(80deg); }
+}
+
+@keyframes vtCircleNew {
+  from { clip-path: circle(0 at 50% 50%); }
+}
+
+@keyframes vtDissolveOld {
+  to { opacity: 0; filter: blur(14px); }
+}
+
+@keyframes vtDissolveNew {
+  from { opacity: 0; filter: blur(14px); }
+}
+
+html[data-vt-effect='fade']::view-transition-old(root) {
+  animation: vtFadeOld 460ms ease-in both;
+}
+
+html[data-vt-effect='fade']::view-transition-new(root) {
+  animation: vtFadeNew 560ms ease-out both;
+}
+
+html[data-vt-effect='push-left']::view-transition-old(root) {
+  animation: vtPushLeftOld 520ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='push-left']::view-transition-new(root) {
+  animation: vtPushLeftNew 520ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='push-right']::view-transition-old(root) {
+  animation: vtPushRightOld 520ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='push-right']::view-transition-new(root) {
+  animation: vtPushRightNew 520ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='push-up']::view-transition-old(root) {
+  animation: vtPushUpOld 520ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='push-up']::view-transition-new(root) {
+  animation: vtPushUpNew 520ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='push-down']::view-transition-old(root) {
+  animation: vtPushDownOld 520ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='push-down']::view-transition-new(root) {
+  animation: vtPushDownNew 520ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='wipe-left']::view-transition-old(root),
+html[data-vt-effect='wipe-right']::view-transition-old(root) {
+  animation: vtWipeOld 560ms ease-out both;
+}
+
+html[data-vt-effect='wipe-left']::view-transition-new(root) {
+  animation: vtWipeLeftNew 620ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='wipe-right']::view-transition-new(root) {
+  animation: vtWipeRightNew 620ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='split-horizontal']::view-transition-old(root) {
+  animation: vtSplitHorizontalOld 500ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='split-horizontal']::view-transition-new(root) {
+  animation: vtSplitHorizontalNew 500ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='split-vertical']::view-transition-old(root) {
+  animation: vtSplitVerticalOld 500ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='split-vertical']::view-transition-new(root) {
+  animation: vtSplitVerticalNew 500ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='zoom']::view-transition-old(root) {
+  animation: vtZoomOld 520ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='zoom']::view-transition-new(root) {
+  animation: vtZoomNew 620ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='flip']::view-transition-old(root) {
+  animation: vtFlipOld 560ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='flip']::view-transition-new(root) {
+  animation: vtFlipNew 560ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='circle']::view-transition-old(root) {
+  animation: vtFadeOld 560ms ease-in both;
+}
+
+html[data-vt-effect='circle']::view-transition-new(root) {
+  animation: vtCircleNew 700ms var(--ease-editorial) both;
+}
+
+html[data-vt-effect='dissolve']::view-transition-old(root) {
+  animation: vtDissolveOld 600ms ease-in both;
+}
+
+html[data-vt-effect='dissolve']::view-transition-new(root) {
+  animation: vtDissolveNew 700ms ease-out both;
+}
+
+::view-transition-group(transition-photo) {
+  z-index: 1;
+}
+
+::view-transition-old(transition-photo),
+::view-transition-new(transition-photo) {
+  animation: vtFadeNew 680ms ease-out both;
+}
+
+.gallery-transition-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  pointer-events: none;
+  view-transition-name: transition-photo;
+}
+
+.gallery-transition-layer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.2;
+  filter: saturate(0.78);
+}
+
 /* 1. Login -> Home: Grand Unveil */
-html[data-vt-direction='login-to-home']::view-transition-old(root) {
+html[data-vt-direction='login-to-home']:not([data-vt-effect])::view-transition-old(root) {
   animation: vtFadeOutScaleUp 620ms var(--ease-editorial) both;
 }
 
-html[data-vt-direction='login-to-home']::view-transition-new(root) {
+html[data-vt-direction='login-to-home']:not([data-vt-effect])::view-transition-new(root) {
   animation: vtHomeGrandReveal 760ms var(--ease-editorial) 80ms both;
 }
 
 /* 2. Forward Navigation (Home -> Subpages) */
-html[data-vt-direction='forward']::view-transition-old(root) {
+html[data-vt-direction='forward']:not([data-vt-effect])::view-transition-old(root) {
   animation: vtForwardOut 420ms var(--ease-editorial) both;
 }
 
-html[data-vt-direction='forward']::view-transition-new(root) {
+html[data-vt-direction='forward']:not([data-vt-effect])::view-transition-new(root) {
   animation: vtForwardIn 520ms var(--ease-editorial) 40ms both;
 }
 
 /* 3. Back Navigation (Subpages -> Home) */
-html[data-vt-direction='back']::view-transition-old(root) {
+html[data-vt-direction='back']:not([data-vt-effect])::view-transition-old(root) {
   animation: vtBackOut 400ms var(--ease-editorial) both;
 }
 
-html[data-vt-direction='back']::view-transition-new(root) {
+html[data-vt-direction='back']:not([data-vt-effect])::view-transition-new(root) {
   animation: vtBackIn 500ms var(--ease-editorial) 30ms both;
+}
+
+html[data-vt-effect]::view-transition-old(root),
+html[data-vt-effect]::view-transition-new(root) {
+  animation-delay: 0ms;
 }
 
 /* Keep the Guest AppBar anchored smoothly across subpage transitions */

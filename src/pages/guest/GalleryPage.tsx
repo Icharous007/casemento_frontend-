@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type SyntheticEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import {
   Box, Typography, IconButton, Button, TextField, CircularProgress, Alert,
@@ -15,6 +15,7 @@ import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import GuestLayout from './GuestLayout';
 import MediaComposer from '../../components/guest/MediaComposer';
+import GalleryImage from '../../components/guest/GalleryImage';
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import { getMe } from '../../api/guestApi';
 import {
@@ -26,6 +27,7 @@ import {
   type MediaFeedResponse,
 } from '../../api/mediaApi';
 import { useGalleryFeed } from '../../hooks/useGalleryFeed';
+import { rememberGalleryPhotos } from '../../utils/galleryTransition';
 import './GalleryPage.css';
 
 const DOUBLE_TAP_MS = 450;
@@ -45,20 +47,6 @@ function formatUploadedAt(iso: string) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-}
-
-function mediaSrc(item: MediaItem) {
-  if (item.mediaType === 'VIDEO') {
-    return item.thumbnailUrl || item.displayUrl || undefined;
-  }
-  return item.thumbnailUrl || item.displayUrl || item.url;
-}
-
-function fallbackImage(event: SyntheticEvent<HTMLImageElement>, item: MediaItem) {
-  const fallback = item.displayUrl || item.url;
-  if (fallback && event.currentTarget.src !== fallback) {
-    event.currentTarget.src = fallback;
-  }
 }
 
 function guestIdFromUrl(url: string | undefined) {
@@ -141,6 +129,10 @@ export default function GalleryPage() {
   const selectedMedia = viewerIndex != null ? items[viewerIndex] ?? null : null;
   const paused = selectedMedia?.id != null && selectedMedia.id === pausedMediaId;
   const supportsObserver = typeof IntersectionObserver !== 'undefined';
+
+  useEffect(() => {
+    rememberGalleryPhotos(items);
+  }, [items]);
 
   function setViewerIndex(index: number | null) {
     setViewerId(index == null ? null : items[index]?.id ?? null);
@@ -506,39 +498,7 @@ export default function GalleryPage() {
               '&:hover img, &:hover video': { transform: 'scale(1.04)' },
             }}
           >
-            {item.mediaType === 'PHOTO' ? (
-              <Box
-                component="img"
-                src={mediaSrc(item)}
-                onError={(event) => fallbackImage(event, item)}
-                alt="foto"
-                loading="lazy"
-                decoding="async"
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  transition: 'transform 220ms ease',
-                }}
-              />
-            ) : (
-              <Box
-                component="img"
-                src={mediaSrc(item)}
-                onError={(event) => fallbackImage(event, item)}
-                alt="pré-visualização do vídeo"
-                loading="lazy"
-                decoding="async"
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  transition: 'transform 220ms ease',
-                }}
-              />
-            )}
+            <GalleryImage item={item} onRetry={() => { void refetch(); }} />
             {item.mediaType === 'VIDEO' && (
               <PlayArrowRoundedIcon
                 sx={{
@@ -644,13 +604,7 @@ export default function GalleryPage() {
               return (
                 <Box key={item.id} className="gallery-reel" data-index={index}>
                   {shouldMountMedia && item.mediaType === 'PHOTO' && (
-                    <Box
-                      component="img"
-                      src={item.displayUrl || item.url}
-                      alt={authorName}
-                      draggable={false}
-                      className="gallery-reel-media"
-                    />
+                    <GalleryImage item={item} viewer onRetry={() => { void refetch(); }} />
                   )}
                   {shouldMountMedia && item.mediaType === 'VIDEO' && (
                     <Box

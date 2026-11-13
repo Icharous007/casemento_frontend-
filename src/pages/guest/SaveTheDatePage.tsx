@@ -8,7 +8,9 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import { registerGuestAccess } from '../../api/guestApi';
+import { listMediaFeed } from '../../api/mediaApi';
 import { isPhoneLengthValid, maskPhone } from '../../utils/phoneMask';
+import { rememberGalleryPhotos } from '../../utils/galleryTransition';
 import GuestLayout from './GuestLayout';
 import { getApiErrorData } from '../../utils/apiError';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
@@ -93,6 +95,17 @@ export default function SaveTheDatePage() {
         acceptedTerms,
       });
       loginWithRegisteredAccess(res);
+      try {
+        const feed = await listMediaFeed({
+          feedId: crypto.randomUUID(),
+          sort: 'random',
+          cursor: 0,
+          pageSize: 10,
+        });
+        rememberGalleryPhotos(feed.items);
+      } catch (galleryError) {
+        console.warn('Não foi possível preparar fotos da galeria para a transição.', galleryError);
+      }
       setIsExitingSuccess(true);
       window.setTimeout(() => {
         navigate('/home', { direction: 'login-to-home' });

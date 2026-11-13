@@ -20,6 +20,16 @@ only the active item and its immediate neighbours; only the active video uses
 `preload="auto"`. Likes update the infinite-query cache optimistically, and
 comments refresh counters without reshuffling the feed.
 
+Image load/decode failures try each available source once, then show an
+explicit unavailable-image message in both the grid and viewer. Retry refreshes
+the feed URLs, does not trigger media gestures, and can pick up newly generated
+JPEG variants. Image diagnostics never include storage URLs.
+
+Guest page navigation uses browser View Transitions with 13 randomized effects,
+including fade, push, wipe, split, zoom, flip, circle, and dissolve. When
+available, a random photo from the gallery is briefly overlaid during the
+transition. Reduced-motion preferences are respected.
+
 Deploy the backend migration and `/api/v1/media/feed` endpoint before this
 frontend. Validate with `pnpm exec vitest run src/__tests__/pages/GalleryPage.test.tsx`
 and `pnpm build`.
